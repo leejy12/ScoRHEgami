@@ -1,6 +1,6 @@
 from sqlalchemy import (
     CheckConstraint,
-    UniqueConstraint,
+    Index,
     Column,
     Integer,
     String,
@@ -24,8 +24,8 @@ class Team(Base):
         index=True,
         server_default=sa_func.gen_random_uuid(),
     )
-    short_name = Column(String, unique=True)
-    name = Column(String, unique=True)
+    short_name = Column(String, unique=True, nullable=False)
+    name = Column(String, unique=True, nullable=False)
 
 
 class Game(Base):
@@ -37,11 +37,11 @@ class Game(Base):
         index=True,
         default=sa_func.gen_random_uuid(),
     )
-    away_id = Column(Uuid(as_uuid=True), ForeignKey("team.id"))
-    home_id = Column(Uuid(as_uuid=True), ForeignKey("team.id"))
+    away_id = Column(Uuid(as_uuid=True), ForeignKey("team.id"), nullable=False)
+    home_id = Column(Uuid(as_uuid=True), ForeignKey("team.id"), nullable=False)
     start_time = Column(TIMESTAMP)
-    box_score = Column(ARRAY(Integer))
-    rhe = Column(ARRAY(Integer))
+    box_score = Column(ARRAY(Integer), nullable=False)
+    rhe = Column(ARRAY(Integer), nullable=False)
 
     home_team = Relationship(
         "Team", foreign_keys=[home_id], back_populates="home_games"
@@ -52,8 +52,13 @@ class Game(Base):
     )
 
     __table_args__ = (
-        UniqueConstraint(
-            "home_id", "away_id", "start_time", name="unique_game_constraint"
+        Index(
+            "ix_unique_game",
+            "home_id",
+            "away_id",
+            "start_time",
+            unique=True,
+            postgresql_where=(start_time.isnot(None)),
         ),
         CheckConstraint("home_id != away_id", name="different_teams_constraint"),
     )
