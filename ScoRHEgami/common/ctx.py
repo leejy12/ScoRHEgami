@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import contextvars
 import dataclasses
+import uuid
 
 from sqlalchemy import create_engine
 from ScoRHEgami.common.settings import AppSettings
@@ -30,10 +31,10 @@ def create_ctx(app_settings: AppSettings) -> AppCtx:
     SessionLocal = sessionmaker(bind=engine)
 
     return AppCtx(
-        ctx_id="",
+        ctx_id=str(uuid.uuid4()),
         settings=app_settings,
         db=SessionLocal(),
     )
 
 
-create_ctx()
+create_ctx(AppSettings())
