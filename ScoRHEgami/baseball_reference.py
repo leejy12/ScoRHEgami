@@ -30,6 +30,11 @@ class Game(BaseModel):
         s += f"{self.box_score[len(self.box_score) // 2 :]}\n"
         return s
 
+    @property
+    def rhe(self):
+        N = len(self.box_score)
+        return self.box_score[N // 2 - 3 : N // 2] + self.box_score[N - 3 :]
+
 
 def get_links_of_season(year: int) -> list[str]:
     url = f"{BREF_BASEURL}/leagues/majors/{year}-schedule.shtml"
@@ -59,12 +64,11 @@ def get_links_of_season(year: int) -> list[str]:
     return urls
 
 
-def get_game_result(url: str) -> Game | None:
+def get_game_result(url: str) -> Game:
     response: requests.Response = requests.get(url)
 
     if response.status_code != 200:
-        print(f"Failed with response: {response.status_code}")
-        return None
+        raise RuntimeError(f"Failed with response: {response.status_code}")
 
     # `url` is like "...YYYYMMDDX.shtml". X is for counting double-headers.
     yyyymmdd: str = url[-15:-7]
