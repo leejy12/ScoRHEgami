@@ -9,7 +9,7 @@ from sqlalchemy import (
     ForeignKey,
     Uuid,
 )
-from sqlalchemy.orm import declarative_base, Relationship
+from sqlalchemy.orm import declarative_base
 from sqlalchemy import func as sa_func
 
 Base = declarative_base()
@@ -42,14 +42,6 @@ class Game(Base):
     start_time = Column(TIMESTAMP)
     box_score = Column(ARRAY(Integer), nullable=False)
     rhe = Column(ARRAY(Integer), nullable=False)
-
-    home_team = Relationship(
-        "Team", foreign_keys=[home_id], back_populates="home_games"
-    )
-
-    away_team = Relationship(
-        "Team", foreign_keys=[away_id], back_populates="away_games"
-    )
 
     __table_args__ = (
         Index(
