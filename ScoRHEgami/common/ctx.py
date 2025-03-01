@@ -30,11 +30,15 @@ def create_ctx(app_settings: AppSettings) -> AppCtx:
     engine = create_engine(app_settings.DB_URI)
     SessionLocal = sessionmaker(bind=engine)
 
-    return AppCtx(
+    ctx = AppCtx(
         ctx_id=str(uuid.uuid4()),
         settings=app_settings,
         db=SessionLocal(),
     )
+
+    _current_app_ctx_var.set(ctx)
+
+    return ctx
 
 
 create_ctx(AppSettings())
