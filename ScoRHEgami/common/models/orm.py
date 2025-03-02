@@ -52,5 +52,7 @@ class Game(Base):
             unique=True,
             postgresql_where=(start_time.isnot(None)),
         ),
+        Index("ix_game_box_score", box_score, postgresql_using="gin"),
+        Index("ix_game_rhe", rhe, postgresql_using="gin"),
         CheckConstraint("home_id != away_id", name="different_teams_constraint"),
     )
