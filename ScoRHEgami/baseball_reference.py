@@ -86,13 +86,18 @@ def get_game_result(url: str) -> Game:
             current_game_summary = game_summary_soup.find(
                 "div", class_="game_summary nohover current"
             )
-
-            for a in current_game_summary.find_all(  # type: ignore
-                "a",
-                href=lambda href: isinstance(href, str) and href.startswith("/teams/"),
-            ):
-                teams_short.append(a.get_text())
             break
+
+    if current_game_summary is None:
+        current_game_summary = game_summary_soup.find(
+            "div", class_="game_summary nohover current"
+        )
+
+    for a in current_game_summary.find_all(  # type: ignore
+        "a",
+        href=lambda href: isinstance(href, str) and href.startswith("/teams/"),
+    ):
+        teams_short.append(a.get_text())
 
     away_team_short: str = teams_short[0]
     home_team_short: str = teams_short[1]
