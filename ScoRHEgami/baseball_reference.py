@@ -79,6 +79,7 @@ def get_game_result(url: str) -> Game:
     # For some reason, the game summary section is commented out in the response body.
     # Parse the comment again with BeautifulSoup.
     teams_short: list[str] = []
+    current_game_summary = None
     comments = soup.find_all(string=lambda text: isinstance(text, Comment))
     for comment in comments:
         if "game_summaries compressed" in comment:
@@ -89,9 +90,7 @@ def get_game_result(url: str) -> Game:
             break
 
     if current_game_summary is None:
-        current_game_summary = game_summary_soup.find(
-            "div", class_="game_summary nohover current"
-        )
+        current_game_summary = soup.find("div", class_="game_summary nohover current")
 
     for a in current_game_summary.find_all(  # type: ignore
         "a",
