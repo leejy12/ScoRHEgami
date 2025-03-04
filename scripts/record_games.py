@@ -3,7 +3,7 @@ import time
 
 
 def main():
-    first_season = 1905
+    first_season = 1906
     last_season = 2024
     for season in range(first_season, last_season + 1):
         with open(f"links/{season}.txt", "r") as f:
