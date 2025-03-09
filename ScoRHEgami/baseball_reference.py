@@ -1,4 +1,5 @@
 import requests
+import httpx
 from bs4 import BeautifulSoup, Comment, Tag
 from datetime import datetime
 from pydantic import BaseModel
@@ -65,7 +66,7 @@ def get_links_of_season(year: int) -> list[str]:
 
 
 def get_game_result(url: str) -> Game:
-    response: requests.Response = requests.get(url)
+    response = httpx.get(url)
 
     if response.status_code != 200:
         raise RuntimeError(f"Failed with response: {response.status_code}")
