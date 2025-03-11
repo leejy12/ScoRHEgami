@@ -4,9 +4,9 @@ import random
 
 
 def main():
-    first_season = 1951
-    last_season = 2015
-    for season in range(first_season, last_season + 1):
+    first_season = 2015
+    last_season = 1971
+    for season in range(first_season, last_season + 1, -1):
         with open(f"links/{season}.txt", "r") as f:
             with open(f"results/{season}.txt", "a") as result_file:
                 urls = [url.strip() for url in f.readlines()]
