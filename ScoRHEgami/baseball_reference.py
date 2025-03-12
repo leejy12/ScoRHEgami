@@ -1,3 +1,4 @@
+import subprocess
 import requests
 import httpx
 from bs4 import BeautifulSoup, Comment, Tag
@@ -37,6 +38,25 @@ class Game(BaseModel):
         return self.box_score[N // 2 - 3 : N // 2] + self.box_score[N - 3 :]
 
 
+def http_get(url: str):
+    try:
+        process = subprocess.run(
+            ["curl", "-s", url],  # -s for silent mode (no progress meter)
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+
+        # Return the stdout which contains the HTTP response body
+        return process.stdout
+    except subprocess.CalledProcessError as e:
+        # Handle errors
+        error_message = (
+            f"Curl command failed with exit code {e.returncode}. Error: {e.stderr}"
+        )
+        raise Exception(error_message)
+
+
 def get_links_of_season(year: int) -> list[str]:
     url = f"{BREF_BASEURL}/leagues/majors/{year}-schedule.shtml"
     response: requests.Response = requests.get(url)
@@ -66,16 +86,16 @@ def get_links_of_season(year: int) -> list[str]:
 
 
 def get_game_result(url: str) -> Game:
-    response = httpx.get(url)
+    response = http_get(url)
 
-    if response.status_code != 200:
-        raise RuntimeError(f"Failed with response: {response.status_code}")
+    # if response.status_code != 200:
+    #     raise RuntimeError(f"Failed with response: {response.status_code}")
 
     # `url` is like "...YYYYMMDDX.shtml". X is for counting double-headers.
     yyyymmdd: str = url[-15:-7]
     start_time: datetime = datetime.strptime(yyyymmdd, "%Y%m%d")
 
-    soup = BeautifulSoup(response.content, "lxml")
+    soup = BeautifulSoup(response, "lxml")
 
     # For some reason, the game summary section is commented out in the response body.
     # Parse the comment again with BeautifulSoup.
