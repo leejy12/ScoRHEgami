@@ -8,6 +8,7 @@ from sqlalchemy import (
     TIMESTAMP,
     ForeignKey,
     Uuid,
+    Boolean,
 )
 from sqlalchemy.orm import declarative_base
 from sqlalchemy import func as sa_func
@@ -42,6 +43,7 @@ class Game(Base):
     start_time = Column(TIMESTAMP)
     box_score = Column(ARRAY(Integer), nullable=False)
     rhe = Column(ARRAY(Integer), nullable=False)
+    is_scorhegami = Column(Boolean, nullable=False)
 
     __table_args__ = (
         Index(
@@ -56,3 +58,16 @@ class Game(Base):
         Index("ix_game_rhe", rhe, postgresql_using="gin"),
         CheckConstraint("home_id != away_id", name="different_teams_constraint"),
     )
+
+
+class ScorhegamiGame(Base):
+    __tablename__ = "scorhegami_game"
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+    )
+    game_id = Column(Uuid(as_uuid=True), ForeignKey("game.id"), nullable=False)
+    start_time = Column(TIMESTAMP, nullable=True)
+    end_time = Column(TIMESTAMP, nullable=True)
