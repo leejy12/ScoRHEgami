@@ -25,7 +25,7 @@ class Team(Base):
         server_default=sa_func.gen_random_uuid(),
     )
     short_name = Column(String, unique=True, nullable=False)
-    name = Column(String, unique=True, nullable=False)
+    names = Column(ARRAY(String), nullable=False)
 
 
 class Game(Base):
