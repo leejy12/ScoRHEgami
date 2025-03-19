@@ -7,11 +7,9 @@ from sqlalchemy import (
     ARRAY,
     TIMESTAMP,
     ForeignKey,
-    Uuid,
     Boolean,
 )
 from sqlalchemy.orm import declarative_base
-from sqlalchemy import func as sa_func
 
 Base = declarative_base()
 
@@ -20,27 +18,26 @@ class Team(Base):
     __tablename__ = "team"
 
     id = Column(
-        Uuid(as_uuid=True),
+        Integer,
         primary_key=True,
-        index=True,
-        server_default=sa_func.gen_random_uuid(),
+        autoincrement=True,
     )
-    short_name = Column(String, unique=True, nullable=False)
-    names = Column(ARRAY(String), nullable=False)
+    short_name = Column(String, unique=True, nullable=True)
+    name = Column(String, unique=True, nullable=False)
 
 
 class Game(Base):
     __tablename__ = "game"
 
     id = Column(
-        Uuid(as_uuid=True),
+        Integer,
         primary_key=True,
-        index=True,
-        default=sa_func.gen_random_uuid(),
+        autoincrement=True,
     )
-    away_id = Column(Uuid(as_uuid=True), ForeignKey("team.id"), nullable=False)
-    home_id = Column(Uuid(as_uuid=True), ForeignKey("team.id"), nullable=False)
-    start_time = Column(TIMESTAMP)
+    away_id = Column(Integer, ForeignKey("team.id"), nullable=False)
+    home_id = Column(Integer, ForeignKey("team.id"), nullable=False)
+    start_time = Column(TIMESTAMP, nullable=True)
+    end_time = Column(TIMESTAMP, nullable=True)
     box_score = Column(ARRAY(Integer), nullable=False)
     rhe = Column(ARRAY(Integer), nullable=False)
     is_scorhegami = Column(Boolean, nullable=False)
@@ -68,6 +65,4 @@ class ScorhegamiGame(Base):
         primary_key=True,
         autoincrement=True,
     )
-    game_id = Column(Uuid(as_uuid=True), ForeignKey("game.id"), nullable=False)
-    start_time = Column(TIMESTAMP, nullable=True)
-    end_time = Column(TIMESTAMP, nullable=True)
+    game_id = Column(Integer, ForeignKey("game.id"), nullable=False)
