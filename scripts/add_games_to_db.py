@@ -1,5 +1,7 @@
-import time
+import datetime
+import json
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import expression as sa_exp
 
 import ScoRHEgami.baseball_reference as bref
@@ -7,50 +9,69 @@ from ScoRHEgami.common.ctx import AppCtx
 from ScoRHEgami.common.models import orm as m
 
 
-def get_team_id(team: bref.Team):
-    team_id = AppCtx.current.db.execute(
-        sa_exp.select(m.Team.id).where(m.Team.name == team.name)
+def get_team_id(name: str):
+    team = AppCtx.current.db.execute(
+        sa_exp.select(m.Team).where(m.Team.name == name)
     ).scalar_one_or_none()
 
-    if team_id is None:
-        new_team = m.Team(
-            name=team.name,
-            short_name=team.short_name,
+    if team is None:
+        team = m.Team(short_name=None, name=name)
+        AppCtx.current.db.add(team)
+        AppCtx.current.db.commit()
+
+    return team.id
+
+
+def is_rhe_scorhegami(rhe: list[int]):
+    rhe_exists = (
+        AppCtx.current.db.scalar(
+            sa_exp.select(sa_exp.exists().where(m.Game.rhe == rhe))
         )
-        AppCtx.current.db.add(new_team)
-        AppCtx.current.db.flush()
-        return new_team.id
-    else:
-        return team_id
+        or False
+    )
+
+    return not rhe_exists
 
 
 def main():
-    season = 1901
+    for season in range(1901, 2025):
+        results: list[str] = []
+        with open(f"results/{season}.txt") as f:
+            results = [result.strip() for result in f.readlines()]
 
-    links: list[str] = []
-    with open(f"links/{season}.txt") as f:
-        links = [link.strip() for link in f.readlines()]
+        for result in results:
+            game = bref.Game(**json.loads(result))
 
-    for link in links[:5]:
-        print(f"Recording game link = {link}")
-        game = bref.get_game_result(link)
+            away_team_id = get_team_id(game.away_team.name)
+            home_team_id = get_team_id(game.home_team.name)
 
-        away_team_id = get_team_id(game.away_team)
-        home_team_id = get_team_id(game.home_team)
+            is_scorhegami = is_rhe_scorhegami(game.rhe)
+            new_game = m.Game(
+                away_id=away_team_id,
+                home_id=home_team_id,
+                start_time=game.start_time,
+                end_time=None,
+                box_score=game.box_score,
+                rhe=game.rhe,
+                is_scorhegami=is_scorhegami,
+            )
 
-        new_game = m.Game(
-            away_id=away_team_id,
-            home_id=home_team_id,
-            start_time=None,
-            box_score=game.box_score,
-            rhe=game.rhe,
-        )
+            while True:
+                try:
+                    AppCtx.current.db.add(new_game)
+                    AppCtx.current.db.commit()
+                    break
+                except IntegrityError:
+                    AppCtx.current.db.rollback()
+                    new_game.start_time += datetime.timedelta(minutes=1)
 
-        AppCtx.current.db.add(new_game)
-        AppCtx.current.db.commit()
-        print(f"Added game: {new_game.id}")
+            print(f"Added game: {game.start_time} {new_game.id}")
 
-        time.sleep(5)
+            if is_scorhegami:
+                AppCtx.current.db.add(m.ScorhegamiGame(game_id=new_game.id))
+                print("That game was a ScoRHEgami!\n")
+
+            AppCtx.current.db.commit()
 
 
 if __name__ == "__main__":
