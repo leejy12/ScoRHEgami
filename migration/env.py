@@ -9,8 +9,8 @@ if config.config_file_name is not None:
 
 
 def _app_init():
-    from ScoRHEgami.common.settings import AppSettings
-    from ScoRHEgami.common.models.orm import Base
+    from app.common.settings import AppSettings
+    from app.common.models.orm import Base
 
     app_settings = AppSettings()
     config.set_main_option("sqlalchemy.url", str(app_settings.DB_URI))

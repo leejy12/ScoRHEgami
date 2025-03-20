@@ -4,9 +4,9 @@ import json
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import expression as sa_exp
 
-import ScoRHEgami.baseball_reference as bref
-from ScoRHEgami.common.ctx import AppCtx
-from ScoRHEgami.common.models import orm as m
+import app.baseball_reference as bref
+from app.common.ctx import AppCtx
+from app.common.models import orm as m
 
 
 def get_team_id(name: str):

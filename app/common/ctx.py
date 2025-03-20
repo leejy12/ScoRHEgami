@@ -5,7 +5,7 @@ import dataclasses
 import uuid
 
 from sqlalchemy import create_engine
-from ScoRHEgami.common.settings import AppSettings
+from app.common.settings import AppSettings
 from sqlalchemy.orm import Session, sessionmaker
 
 _current_app_ctx_var: contextvars.ContextVar[AppCtx] = contextvars.ContextVar(

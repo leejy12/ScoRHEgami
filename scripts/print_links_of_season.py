@@ -1,4 +1,4 @@
-import ScoRHEgami.baseball_reference as bref
+import app.baseball_reference as bref
 
 
 def main():
