@@ -7,7 +7,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from app.common.ctx import bind_app_ctx, create_app_ctx
 from app.common.settings import AppSettings
 
-from .apis import API_ROUTES
+from .apis import api_router
 
 
 @asynccontextmanager
@@ -22,8 +22,7 @@ async def lifespan(app: FastAPI):
 def create_app() -> FastAPI:
     app = FastAPI(lifespan=lifespan)
 
-    for api_router in API_ROUTES:
-        app.include_router(api_router)
+    app.include_router(api_router)
 
     async def app_ctx_middleware(request: Request, call_next):
         app_ctx = request.app.extra["_app_ctx"]
