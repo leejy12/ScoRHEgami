@@ -1,6 +1,5 @@
 import subprocess
 import requests
-import httpx
 from bs4 import BeautifulSoup, Comment, Tag
 from datetime import datetime
 from pydantic import BaseModel

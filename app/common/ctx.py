@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+import contextlib
 import contextvars
 import dataclasses
 import uuid
+from typing import AsyncIterator
 
-from sqlalchemy import create_engine
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.ext.asyncio.session import async_sessionmaker
+
 from app.common.settings import AppSettings
-from sqlalchemy.orm import Session, sessionmaker
 
 _current_app_ctx_var: contextvars.ContextVar[AppCtx] = contextvars.ContextVar(
     "_current_app_ctx_var"
@@ -23,17 +26,17 @@ class AppCtxMeta(type):
 class AppCtx(metaclass=AppCtxMeta):
     ctx_id: str
     settings: AppSettings
-    db: Session
+    db: AsyncSession
 
 
-def create_ctx(app_settings: AppSettings) -> AppCtx:
-    engine = create_engine(app_settings.DB_URI)
-    SessionLocal = sessionmaker(bind=engine)
+async def create_app_ctx(app_settings: AppSettings) -> AppCtx:
+    engine = create_async_engine(app_settings.DB_URI)
+    AsyncSessionLocal = async_sessionmaker(bind=engine)
 
     ctx = AppCtx(
         ctx_id=str(uuid.uuid4()),
         settings=app_settings,
-        db=SessionLocal(),
+        db=AsyncSessionLocal(),
     )
 
     _current_app_ctx_var.set(ctx)
@@ -41,4 +44,11 @@ def create_ctx(app_settings: AppSettings) -> AppCtx:
     return ctx
 
 
-create_ctx(AppSettings())
+@contextlib.asynccontextmanager
+async def bind_app_ctx(app_ctx: AppCtx) -> AsyncIterator[None]:
+    ctx = dataclasses.replace(app_ctx, ctx_id=str(uuid.uuid4()))
+    token = _current_app_ctx_var.set(ctx)
+    try:
+        yield
+    finally:
+        _current_app_ctx_var.reset(token)

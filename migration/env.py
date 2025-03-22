@@ -1,6 +1,9 @@
+import asyncio
 from logging.config import fileConfig
-from sqlalchemy import pool, create_engine
+
 from alembic import context
+from sqlalchemy import pool
+from sqlalchemy.ext.asyncio import create_async_engine
 
 config = context.config
 
@@ -9,8 +12,8 @@ if config.config_file_name is not None:
 
 
 def _app_init():
-    from app.common.settings import AppSettings
     from app.common.models.orm import Base
+    from app.common.settings import AppSettings
 
     app_settings = AppSettings()
     config.set_main_option("sqlalchemy.url", str(app_settings.DB_URI))
@@ -35,20 +38,32 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
-def run_migrations_online() -> None:
-    connectable = create_engine(
-        config.get_main_option("sqlalchemy.url"),
+def do_run_migrations(connection):
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+    )
+
+    with context.begin_transaction():
+        context.run_migrations()
+
+
+async def run_async_migrations():
+    url = config.get_main_option("sqlalchemy.url")
+
+    connectable = create_async_engine(
+        url,
         poolclass=pool.NullPool,
     )
 
-    with connectable.connect() as connection:
-        context.configure(
-            connection=connection,
-            target_metadata=target_metadata,
-        )
+    async with connectable.connect() as connection:
+        await connection.run_sync(do_run_migrations)
 
-        with context.begin_transaction():
-            context.run_migrations()
+    await connectable.dispose()
+
+
+def run_migrations_online() -> None:
+    asyncio.run(run_async_migrations())
 
 
 if context.is_offline_mode():

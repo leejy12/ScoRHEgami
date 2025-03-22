@@ -8,5 +8,5 @@ class AppSettings(BaseSettings):
     )
 
     DB_URI: str = Field(
-        default="postgresql+psycopg2://scorhegami:devpassword@127.0.0.1:5432/scorhegami",
+        default="postgresql+asyncpg://scorhegami:devpassword@127.0.0.1:5432/scorhegami",
     )
