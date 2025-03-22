@@ -1,6 +1,6 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.routing import APIRouter
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy.sql import expression as sa_exp
 
 from app.common.ctx import AppCtx
@@ -12,7 +12,7 @@ router = APIRouter(prefix="/team", tags=["team"])
 
 class TeamGetRequest(BaseModel):
     offset: int
-    count: int
+    count: int = Field(ge=1, le=10)
 
 
 class TeamGetResponse(BaseModel):

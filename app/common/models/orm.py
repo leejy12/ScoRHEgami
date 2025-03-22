@@ -1,15 +1,17 @@
+import datetime
+
 from sqlalchemy import (
-    CheckConstraint,
-    Index,
-    Column,
-    Integer,
-    String,
     ARRAY,
     TIMESTAMP,
-    ForeignKey,
     Boolean,
+    CheckConstraint,
+    Column,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
 )
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import Mapped, declarative_base, relationship
 
 Base = declarative_base()
 
@@ -17,30 +19,36 @@ Base = declarative_base()
 class Team(Base):
     __tablename__ = "team"
 
-    id = Column(
+    id: Mapped[int] = Column(
         Integer,
         primary_key=True,
         autoincrement=True,
     )
-    short_name = Column(String, unique=True, nullable=True)
-    name = Column(String, unique=True, nullable=False)
+    short_name: Mapped[str | None] = Column(String, unique=True, nullable=True)
+    name: Mapped[str] = Column(String, unique=True, nullable=False)
 
 
 class Game(Base):
     __tablename__ = "game"
 
-    id = Column(
+    id: Mapped[int] = Column(
         Integer,
         primary_key=True,
         autoincrement=True,
     )
-    away_id = Column(Integer, ForeignKey("team.id"), nullable=False)
-    home_id = Column(Integer, ForeignKey("team.id"), nullable=False)
-    start_time = Column(TIMESTAMP, nullable=True)
-    end_time = Column(TIMESTAMP, nullable=True)
-    box_score = Column(ARRAY(Integer), nullable=False)
-    rhe = Column(ARRAY(Integer), nullable=False)
-    is_scorhegami = Column(Boolean, nullable=False)
+
+    away_id: Mapped[int] = Column(Integer, ForeignKey("team.id"), nullable=False)
+    home_id: Mapped[int] = Column(Integer, ForeignKey("team.id"), nullable=False)
+
+    away_team: Mapped[Team] = relationship("Team", foreign_keys=[away_id])
+    home_team: Mapped[Team] = relationship("Team", foreign_keys=[home_id])
+
+    start_time: Mapped[datetime.datetime | None] = Column(TIMESTAMP, nullable=True)
+    end_time: Mapped[datetime.datetime | None] = Column(TIMESTAMP, nullable=True)
+
+    box_score: Mapped[list[int]] = Column(ARRAY(Integer), nullable=False)
+    rhe: Mapped[list[int]] = Column(ARRAY(Integer), nullable=False)
+    is_scorhegami: Mapped[bool] = Column(Boolean, nullable=False)
 
     __table_args__ = (
         Index(
