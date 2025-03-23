@@ -3,6 +3,7 @@ import datetime
 from fastapi import Depends, HTTPException, Query, status
 from fastapi.routing import APIRouter
 from pydantic import BaseModel, Field
+from sqlalchemy import func as sa_func
 from sqlalchemy import orm as sa_orm
 from sqlalchemy.sql import expression as sa_exp
 
@@ -11,6 +12,32 @@ from app.common.models import orm as m
 from app.common.models.app import TeamModel
 
 router = APIRouter(prefix="/game", tags=["game"])
+
+
+class GameCountRequest(BaseModel):
+    is_scorhegami: bool | None = None
+
+
+@router.get("/count")
+async def _(
+    q: GameCountRequest = Depends(),
+    rhe: list[int] | None = Query(None),
+) -> int:
+    if rhe is not None:
+        if len(rhe) != 6:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+
+    count_query = sa_exp.select(sa_func.count()).select_from(m.Game)
+
+    if rhe is not None:
+        count_query = count_query.where(m.Game.rhe == rhe)
+
+    if q.is_scorhegami is not None:
+        count_query = count_query.where(m.Game.is_scorhegami.is_(q.is_scorhegami))
+
+    count = (await AppCtx.current.db.execute(count_query)).scalar() or 0
+
+    return count
 
 
 class GameGetRequest(BaseModel):
