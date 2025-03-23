@@ -24,8 +24,23 @@ class Team(Base):
         primary_key=True,
         autoincrement=True,
     )
-    short_name: Mapped[str | None] = Column(String, unique=True, nullable=True)
+    balldontlie_id: Mapped[int] = Column(
+        Integer,
+        nullable=True,
+        index=True,
+    )
+    short_name: Mapped[str | None] = Column(String, nullable=True)
     name: Mapped[str] = Column(String, unique=True, nullable=False)
+    is_most_recent_name: Mapped[bool] = Column(Boolean, nullable=False)
+
+    __table_args__ = (
+        Index(
+            "ix_unique_most_recent_name",
+            balldontlie_id,
+            is_most_recent_name,
+            postgresql_where=(is_most_recent_name.is_(True)),
+        ),
+    )
 
 
 class Game(Base):
