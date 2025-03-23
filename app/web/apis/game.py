@@ -42,7 +42,7 @@ async def _(
 
 class GameGetRequest(BaseModel):
     offset: int
-    count: int = Field(ge=1, le=10)
+    count: int = Field(ge=1, le=50)
 
 
 class GameGetResponse(BaseModel):
