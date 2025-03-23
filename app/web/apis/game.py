@@ -59,7 +59,7 @@ class GameGetResponse(BaseModel):
 @router.get("")
 async def _(
     q: GameGetRequest = Depends(),
-    rhe: list[int] | None = Query(),
+    rhe: list[int] | None = Query(None),
 ) -> list[GameGetResponse]:
     if rhe is not None:
         if len(rhe) != 6:
