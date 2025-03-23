@@ -1,10 +1,10 @@
 import datetime
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Query, status
 from fastapi.routing import APIRouter
 from pydantic import BaseModel, Field
-from sqlalchemy.sql import expression as sa_exp
 from sqlalchemy import orm as sa_orm
+from sqlalchemy.sql import expression as sa_exp
 
 from app.common.ctx import AppCtx
 from app.common.models import orm as m
@@ -32,16 +32,24 @@ class GameGetResponse(BaseModel):
 @router.get("")
 async def _(
     q: GameGetRequest = Depends(),
+    rhe: list[int] | None = Query(),
 ) -> list[GameGetResponse]:
+    if rhe is not None:
+        if len(rhe) != 6:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+
+    games_query = sa_exp.select(m.Game).options(
+        sa_orm.joinedload(m.Game.away_team),
+        sa_orm.joinedload(m.Game.home_team),
+    )
+
+    if rhe is not None:
+        games_query = games_query.where(m.Game.rhe == rhe)
+
     games = (
         (
             await AppCtx.current.db.execute(
-                sa_exp.select(m.Game)
-                .options(
-                    sa_orm.joinedload(m.Game.away_team),
-                    sa_orm.joinedload(m.Game.home_team),
-                )
-                .order_by(m.Game.id.asc())
+                games_query.order_by(m.Game.start_time.desc())
                 .offset(q.offset)
                 .limit(q.count)
             )
