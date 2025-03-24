@@ -58,8 +58,12 @@ class Game(Base):
     away_team: Mapped[Team] = relationship("Team", foreign_keys=[away_id])
     home_team: Mapped[Team] = relationship("Team", foreign_keys=[home_id])
 
-    start_time: Mapped[datetime.datetime | None] = Column(TIMESTAMP, nullable=True)
-    end_time: Mapped[datetime.datetime | None] = Column(TIMESTAMP, nullable=True)
+    start_time: Mapped[datetime.datetime | None] = Column(
+        TIMESTAMP(timezone=True), nullable=True
+    )
+    end_time: Mapped[datetime.datetime | None] = Column(
+        TIMESTAMP(timezone=True), nullable=True
+    )
 
     box_score: Mapped[list[int]] = Column(ARRAY(Integer), nullable=False)
     rhe: Mapped[list[int]] = Column(ARRAY(Integer), nullable=False)
