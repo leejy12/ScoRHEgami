@@ -54,6 +54,7 @@ class GameGetResponse(BaseModel):
     box_score: list[int]
     rhe: list[int]
     is_scorhegami: bool
+    bref_url: str | None
 
 
 @router.get("")
@@ -103,6 +104,7 @@ async def _(
             box_score=game.box_score,
             rhe=game.rhe,
             is_scorhegami=game.is_scorhegami,
+            bref_url=game.bref_url,
         )
         for game in games
     ]
@@ -143,4 +145,5 @@ async def _(game_id: int) -> GameGetResponse:
         box_score=game.box_score,
         rhe=game.rhe,
         is_scorhegami=game.is_scorhegami,
+        bref_url=game.bref_url,
     )

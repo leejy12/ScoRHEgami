@@ -154,6 +154,7 @@
                                 <tr>
                                     <th>Teams</th>
                                     <th>Box Score</th>
+                                    <th>Link</th>
                                 </tr>
                             </thead>
                             <tbody id="gamesTableBody">
@@ -343,6 +344,9 @@
                     </td>
                     <td class="box-score">
                         ${formatBoxScore(game.box_score, game.rhe)}
+                    </td>
+                    <td>
+                        <a href=${game.bref_url}>link</a>
                     </td>
                 `;
 
