@@ -65,6 +65,8 @@ class Game(Base):
     rhe: Mapped[list[int]] = Column(ARRAY(Integer), nullable=False)
     is_scorhegami: Mapped[bool] = Column(Boolean, nullable=False)
 
+    bref_url: Mapped[str] = Column(String, nullable=True)
+
     __table_args__ = (
         Index(
             "ix_unique_game",
