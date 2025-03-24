@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import func as sa_func
 from sqlalchemy import orm as sa_orm
 from sqlalchemy.sql import expression as sa_exp
+from sqlalchemy.exc import IntegrityError
 
 from app.common.ctx import AppCtx
 from app.common.models import orm as m
@@ -38,6 +39,120 @@ async def _(
     count = (await AppCtx.current.db.execute(count_query)).scalar() or 0
 
     return count
+
+
+class GamePostRequest(BaseModel):
+    away_id: int
+    home_id: int
+    start_time: datetime.datetime | None
+    end_time: datetime.datetime | None
+    box_score: list[int]
+    bref_url: str | None
+
+
+class GamePostResponse(BaseModel):
+    id: int
+    away_team: TeamModel
+    home_team: TeamModel
+    start_time: datetime.datetime | None
+    end_time: datetime.datetime | None
+    box_score: list[int]
+    rhe: list[int]
+    is_scorhegami: bool
+    bref_url: str | None
+
+
+@router.post("")
+async def _(
+    q: GamePostRequest,
+) -> GamePostResponse:
+    away_team = (
+        await AppCtx.current.db.execute(
+            sa_exp.select(m.Team).where(m.Team.id == q.away_id)
+        )
+    ).scalar_one_or_none()
+
+    if away_team is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"message": "away team does not exist"},
+        )
+
+    home_team = (
+        await AppCtx.current.db.execute(
+            sa_exp.select(m.Team).where(m.Team.id == q.home_id)
+        )
+    ).scalar_one_or_none()
+
+    if home_team is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"message": "home team does not exist"},
+        )
+
+    N = len(q.box_score)
+
+    if N % 2 != 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"message": "box score does not have even number of elements"},
+        )
+
+    if N < 6:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"message": "box score does not enough elements"},
+        )
+
+    rhe = q.box_score[N // 2 - 3 : N // 2] + q.box_score[N - 3 : N]
+
+    is_scorhegami = not (
+        await AppCtx.current.db.scalar(
+            sa_exp.select(sa_exp.exists().where(m.Game.rhe == rhe))
+        )
+        or False
+    )
+
+    game = m.Game(
+        away_id=q.away_id,
+        home_id=q.home_id,
+        start_time=q.start_time,
+        end_time=q.end_time,
+        box_score=q.box_score,
+        rhe=rhe,
+        is_scorhegami=is_scorhegami,
+        bref_url=q.bref_url,
+    )
+
+    AppCtx.current.db.add(game)
+
+    try:
+        await AppCtx.current.db.commit()
+    except IntegrityError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={"message": "game already exists"},
+        )
+
+    return GameGetResponse(
+        id=game.id,
+        away_team=TeamModel(
+            id=away_team.id,
+            short_name=away_team.short_name,
+            name=away_team.name,
+        ),
+        home_team=TeamModel(
+            id=home_team.id,
+            short_name=home_team.short_name,
+            name=home_team.name,
+        ),
+        start_time=game.start_time,
+        end_time=game.end_time,
+        box_score=game.box_score,
+        rhe=game.rhe,
+        is_scorhegami=game.is_scorhegami,
+        bref_url=game.bref_url,
+    )
 
 
 class GameGetRequest(BaseModel):
