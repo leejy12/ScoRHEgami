@@ -25,6 +25,13 @@ class AdvisoryLockSampleTask(AdvisoryLockBase):
         return "sample_task"
 
 
+@dataclasses.dataclass
+class AdvisoryLockGameFetcherTask(AdvisoryLockBase):
+    @property
+    def ident(self) -> str:
+        return "game_fetcher_task"
+
+
 async def obtain_advisory_lock(
     lock: AdvisoryLockBase,
     timeout: float = 5.0,

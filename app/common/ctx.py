@@ -6,6 +6,8 @@ import dataclasses
 import uuid
 from typing import AsyncIterator
 
+from balldontlie import BalldontlieAPI
+
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.ext.asyncio.session import async_sessionmaker
 
@@ -27,6 +29,7 @@ class AppCtx(metaclass=AppCtxMeta):
     ctx_id: str
     settings: AppSettings
     db: AsyncSession
+    balldontlie_api: BalldontlieAPI
 
 
 async def create_app_ctx(app_settings: AppSettings) -> AppCtx:
@@ -37,6 +40,7 @@ async def create_app_ctx(app_settings: AppSettings) -> AppCtx:
         ctx_id=str(uuid.uuid4()),
         settings=app_settings,
         db=AsyncSessionLocal(),
+        balldontlie_api=BalldontlieAPI(api_key=str(app_settings.BALLDONTLIE_API_KEY)),
     )
 
     _current_app_ctx_var.set(ctx)

@@ -72,9 +72,10 @@ class Game(Base):
         TIMESTAMP(timezone=True), nullable=True
     )
 
-    box_score: Mapped[list[int]] = Column(ARRAY(Integer), nullable=False)
-    rhe: Mapped[list[int]] = Column(ARRAY(Integer), nullable=False)
-    is_scorhegami: Mapped[bool] = Column(Boolean, nullable=False)
+    box_score: Mapped[list[int]] = Column(ARRAY(Integer), nullable=True)
+    rhe: Mapped[list[int]] = Column(ARRAY(Integer), nullable=True)
+    status: Mapped[str] = Column(String, nullable=True)
+    is_scorhegami: Mapped[bool] = Column(Boolean, nullable=True)
 
     bref_url: Mapped[str] = Column(String, nullable=True)
 

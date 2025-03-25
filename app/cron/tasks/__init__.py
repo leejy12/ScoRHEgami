@@ -1,5 +1,5 @@
-from .sample_task import SampleTask
+from .game_fetcher import GameFetcherTask
 
 TASK_CLS_LIST = [
-    SampleTask,
+    GameFetcherTask,
 ]

@@ -1,8 +1,12 @@
+import uuid
+
 from pydantic import Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class AppSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="allow")
+
     DB_SCHEMA: str = Field(
         default="public",
     )
@@ -10,3 +14,5 @@ class AppSettings(BaseSettings):
     DB_URI: str = Field(
         default="postgresql+asyncpg://scorhegami:devpassword@127.0.0.1:5432/scorhegami",
     )
+
+    BALLDONTLIE_API_KEY: uuid.UUID
