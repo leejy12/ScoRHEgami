@@ -162,6 +162,7 @@ class GameGetRequest(BaseModel):
 
 class GameGetResponse(BaseModel):
     id: int
+    balldontlie_id: int | None
     away_team: TeamModel
     home_team: TeamModel
     start_time: datetime.datetime | None
@@ -204,6 +205,7 @@ async def _(
     return [
         GameGetResponse(
             id=game.id,
+            balldontlie_id=game.balldontlie_id,
             away_team=TeamModel(
                 id=game.away_team.id,
                 short_name=game.away_team.short_name,
@@ -245,6 +247,7 @@ async def _(game_id: int) -> GameGetResponse:
 
     return GameGetResponse(
         id=game.id,
+        balldontlie_id=game.balldontlie_id,
         away_team=TeamModel(
             id=game.away_team.id,
             short_name=game.away_team.short_name,

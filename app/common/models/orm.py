@@ -27,6 +27,7 @@ class Team(Base):
     balldontlie_id: Mapped[int] = Column(
         Integer,
         nullable=True,
+        unique=True,
         index=True,
     )
     short_name: Mapped[str | None] = Column(String, nullable=True)
@@ -50,6 +51,12 @@ class Game(Base):
         Integer,
         primary_key=True,
         autoincrement=True,
+    )
+    balldontlie_id: Mapped[int] = Column(
+        Integer,
+        nullable=True,
+        unique=True,
+        index=True,
     )
 
     away_id: Mapped[int] = Column(Integer, ForeignKey("team.id"), nullable=False)
