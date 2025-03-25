@@ -55,6 +55,19 @@ wheels = [
 ]
 
 [[package]]
+name = "balldontlie"
+version = "0.1.6"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pydantic" },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/4b/df/2de2cb383b7e25d086ea6226b922dd2baf66cc918b81f81606681ca03652/balldontlie-0.1.6.tar.gz", hash = "sha256:739ea4ba6e245b7a0289ff962ceb9124db4de26916e9ca7a9c37ad8606c1e522", size = 10717 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9d/35/aba11fff14a5dcad529ee213e34ac11ba6dcc4cc99eb2d5cee2ac4e7023c/balldontlie-0.1.6-py3-none-any.whl", hash = "sha256:3baa021bd6346fe129f674a5fedd9e5e2bc0a1dcfd1b3a3291934068959e27a2", size = 13621 },
+]
+
+[[package]]
 name = "beautifulsoup4"
 version = "4.12.3"
 source = { registry = "https://pypi.org/simple" }
@@ -557,6 +570,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "alembic" },
     { name = "asyncpg" },
+    { name = "balldontlie" },
     { name = "beautifulsoup4" },
     { name = "fastapi", extra = ["standard"] },
     { name = "httpx" },
@@ -573,6 +587,7 @@ dependencies = [
 requires-dist = [
     { name = "alembic", specifier = "==1.14.1" },
     { name = "asyncpg", specifier = "==0.30.0" },
+    { name = "balldontlie", specifier = "==0.1.6" },
     { name = "beautifulsoup4", specifier = "==4.12.3" },
     { name = "fastapi", extras = ["standard"], specifier = "==0.115.11" },
     { name = "httpx", specifier = "==0.28.1" },
