@@ -10,21 +10,21 @@ from app.common.models import orm as m
 
 
 def get_team_id(name: str):
-    team = AppCtx.current.db.execute(
+    team = AppCtx.current.db.session.execute(
         sa_exp.select(m.Team).where(m.Team.name == name)
     ).scalar_one_or_none()
 
     if team is None:
         team = m.Team(short_name=None, name=name)
         AppCtx.current.db.add(team)
-        AppCtx.current.db.commit()
+        AppCtx.current.db.session.commit()
 
     return team.id
 
 
 def is_rhe_scorhegami(rhe: list[int]):
     rhe_exists = (
-        AppCtx.current.db.scalar(
+        AppCtx.current.db.session.scalar(
             sa_exp.select(sa_exp.exists().where(m.Game.rhe == rhe))
         )
         or False
@@ -59,7 +59,7 @@ def main():
             while True:
                 try:
                     AppCtx.current.db.add(new_game)
-                    AppCtx.current.db.commit()
+                    AppCtx.current.db.session.commit()
                     break
                 except IntegrityError:
                     AppCtx.current.db.rollback()
@@ -71,7 +71,7 @@ def main():
                 AppCtx.current.db.add(m.ScorhegamiGame(game_id=new_game.id))
                 print("That game was a ScoRHEgami!\n")
 
-            AppCtx.current.db.commit()
+            AppCtx.current.db.session.commit()
 
 
 if __name__ == "__main__":

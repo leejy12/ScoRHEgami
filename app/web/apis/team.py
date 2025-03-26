@@ -27,7 +27,7 @@ async def _(
 ) -> list[TeamGetResponse]:
     teams = (
         (
-            await AppCtx.current.db.execute(
+            await AppCtx.current.db.session.execute(
                 sa_exp.select(m.Team)
                 .order_by(m.Team.id.asc())
                 .offset(q.offset)
@@ -51,7 +51,7 @@ async def _(
 @router.get("/{team_id}")
 async def _(team_id: int) -> TeamGetResponse:
     team = (
-        await AppCtx.current.db.execute(
+        await AppCtx.current.db.session.execute(
             sa_exp.select(m.Team).where(m.Team.id == team_id)
         )
     ).scalar_one_or_none()

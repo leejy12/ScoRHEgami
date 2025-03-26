@@ -36,7 +36,7 @@ async def _(
     if q.is_scorhegami is not None:
         count_query = count_query.where(m.Game.is_scorhegami.is_(q.is_scorhegami))
 
-    count = (await AppCtx.current.db.execute(count_query)).scalar() or 0
+    count = (await AppCtx.current.db.session.execute(count_query)).scalar() or 0
 
     return count
 
@@ -67,7 +67,7 @@ async def _(
     q: GamePostRequest,
 ) -> GamePostResponse:
     away_team = (
-        await AppCtx.current.db.execute(
+        await AppCtx.current.db.session.execute(
             sa_exp.select(m.Team).where(m.Team.id == q.away_id)
         )
     ).scalar_one_or_none()
@@ -79,7 +79,7 @@ async def _(
         )
 
     home_team = (
-        await AppCtx.current.db.execute(
+        await AppCtx.current.db.session.execute(
             sa_exp.select(m.Team).where(m.Team.id == q.home_id)
         )
     ).scalar_one_or_none()
@@ -107,7 +107,7 @@ async def _(
     rhe = q.box_score[N // 2 - 3 : N // 2] + q.box_score[N - 3 : N]
 
     is_scorhegami = not (
-        await AppCtx.current.db.scalar(
+        await AppCtx.current.db.session.scalar(
             sa_exp.select(sa_exp.exists().where(m.Game.rhe == rhe))
         )
         or False
@@ -127,7 +127,7 @@ async def _(
     AppCtx.current.db.add(game)
 
     try:
-        await AppCtx.current.db.commit()
+        await AppCtx.current.db.session.commit()
     except IntegrityError:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -192,7 +192,7 @@ async def _(
 
     games = (
         (
-            await AppCtx.current.db.execute(
+            await AppCtx.current.db.session.execute(
                 games_query.order_by(m.Game.start_time.desc())
                 .offset(q.offset)
                 .limit(q.count)
@@ -230,7 +230,7 @@ async def _(
 @router.get("/{game_id}")
 async def _(game_id: int) -> GameGetResponse:
     game = (
-        await AppCtx.current.db.execute(
+        await AppCtx.current.db.session.execute(
             sa_exp.select(m.Game)
             .options(
                 sa_orm.joinedload(m.Game.away_team), sa_orm.joinedload(m.Game.home_team)

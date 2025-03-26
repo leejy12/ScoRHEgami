@@ -3,15 +3,20 @@ from __future__ import annotations
 import contextlib
 import contextvars
 import dataclasses
+import logging
 import uuid
-from typing import AsyncIterator
+from typing import TYPE_CHECKING, AsyncIterator
 
 from balldontlie import BalldontlieAPI
 
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.ext.asyncio.session import async_sessionmaker
-
 from app.common.settings import AppSettings
+
+if TYPE_CHECKING:
+    from .utils.sqla import SqlaEngineAndSession
+
+
+logger = logging.getLogger(__name__)
+
 
 _current_app_ctx_var: contextvars.ContextVar[AppCtx] = contextvars.ContextVar(
     "_current_app_ctx_var"
@@ -28,18 +33,17 @@ class AppCtxMeta(type):
 class AppCtx(metaclass=AppCtxMeta):
     ctx_id: str
     settings: AppSettings
-    db: AsyncSession
+    db: SqlaEngineAndSession
     balldontlie_api: BalldontlieAPI
 
 
 async def create_app_ctx(app_settings: AppSettings) -> AppCtx:
-    engine = create_async_engine(app_settings.DB_URI)
-    AsyncSessionLocal = async_sessionmaker(bind=engine)
+    from .utils.sqla import SqlaEngineAndSession
 
     ctx = AppCtx(
         ctx_id=str(uuid.uuid4()),
         settings=app_settings,
-        db=AsyncSessionLocal(),
+        db=SqlaEngineAndSession(app_settings.DB_URI, app_settings.DB_OPTIONS),
         balldontlie_api=BalldontlieAPI(api_key=str(app_settings.BALLDONTLIE_API_KEY)),
     )
 
@@ -55,4 +59,9 @@ async def bind_app_ctx(app_ctx: AppCtx) -> AsyncIterator[None]:
     try:
         yield
     finally:
+        try:
+            await app_ctx.db.clear_scoped_session()
+        except Exception:
+            logger.warning("Failed to clear DB scoped session", exc_info=True)
+
         _current_app_ctx_var.reset(token)

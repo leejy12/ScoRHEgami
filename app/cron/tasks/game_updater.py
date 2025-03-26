@@ -1,11 +1,11 @@
-import datetime
 import asyncio
+import datetime
 import logging
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 
+from balldontlie import BalldontlieAPI
 from balldontlie.mlb.models import MLBGame
-from sqlalchemy import Tuple
 from sqlalchemy.sql import expression as sa_exp
 
 from app.common.ctx import AppCtx, bind_app_ctx
@@ -57,12 +57,13 @@ class GameUpdaterTask(AsyncComponent):
                         sqla_utils.AdvisoryLockGameUpdaterTask(),
                         nowait=True,
                     )
-                except Exception:
+                except Exception as e:
+                    logger.error("%s", str(e))
                     return
 
                 ongoing_games = (
                     (
-                        await AppCtx.current.db.execute(
+                        await AppCtx.current.db.session.execute(
                             sa_exp.select(m.Game).where(m.Game.status != "STATUS_FINAL")
                         )
                     )
@@ -73,8 +74,12 @@ class GameUpdaterTask(AsyncComponent):
                 if not ongoing_games:
                     return
 
+                logger.info("Updating %d ongoing games", len(ongoing_games))
+
+                # Pass the API client object to be shared among threads.
                 game_results = await self._fetch_all_game_results(
-                    [game.balldontlie_id for game in ongoing_games]
+                    [game.balldontlie_id for game in ongoing_games],
+                    AppCtx.current.balldontlie_api,
                 )
 
                 game_results = [
@@ -84,45 +89,48 @@ class GameUpdaterTask(AsyncComponent):
                 now = datetime.datetime.now(tz=datetime.UTC)
 
                 for result in game_results:
-                    boxscore, rhe = self._get_boxscore_and_rhe(result)
-                    await AppCtx.current.db.execute(
+                    box_score, rhe = self._get_boxscore_and_rhe(result)
+                    await AppCtx.current.db.session.execute(
                         sa_exp.update(m.Game)
                         .values(
                             end_time=now,
-                            boxscore=boxscore,
+                            status=result.status,
+                            box_score=box_score,
                             rhe=rhe,
                         )
                         .where(m.Game.balldontlie_id == result.id)
                     )
 
-                await AppCtx.current.db.commit()
+                await AppCtx.current.db.session.commit()
 
         except Exception:
             logger.exception(f"Failed to run {self.__class__.__name__}")
 
-    async def _fetch_all_game_results(self, game_ids: list[int]) -> list[MLBGame]:
-        coroutines = [self._fetch_game_result(game_id) for game_id in game_ids]
+    async def _fetch_all_game_results(
+        self, game_ids: list[int], api: BalldontlieAPI
+    ) -> list[MLBGame]:
+        coroutines = [self._fetch_game_result(game_id, api) for game_id in game_ids]
 
         return await asyncio.gather(*coroutines, return_exceptions=True)
 
-    async def _fetch_game_result(self, game_id: int) -> MLBGame:
+    async def _fetch_game_result(self, game_id: int, api: BalldontlieAPI) -> MLBGame:
         loop = asyncio.get_running_loop()
 
-        fn = partial(self._get_game_result, game_id)
+        fn = partial(self._get_game_result, game_id, api)
         return await loop.run_in_executor(self.pool, fn)
 
-    def _get_game_result(self, balldontlie_game_id: int) -> MLBGame:
+    def _get_game_result(
+        self, balldontlie_game_id: int, api: BalldontlieAPI
+    ) -> MLBGame:
         try:
-            return AppCtx.current.balldontlie_api.mlb.games.get(
-                balldontlie_game_id
-            ).data
+            return api.mlb.games.get(balldontlie_game_id).data
         except Exception as e:
             logger.error(f"Failed to get game result for ID {balldontlie_game_id}: {e}")
             raise
 
-    def _get_boxscore_and_rhe(self, result: MLBGame) -> Tuple[list[int], list[int]]:
+    def _get_boxscore_and_rhe(self, result: MLBGame) -> tuple[list[int], list[int]]:
         away_team_scores = result.away_team_data.inning_scores
-        home_team_scores = result.away_team_data.inning_scores
+        home_team_scores = result.home_team_data.inning_scores
 
         if len(away_team_scores) > len(home_team_scores):
             home_team_scores.append(0)

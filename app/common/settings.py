@@ -1,3 +1,4 @@
+from typing import Any
 import uuid
 
 from pydantic import Field
@@ -13,6 +14,12 @@ class AppSettings(BaseSettings):
 
     DB_URI: str = Field(
         default="postgresql+asyncpg://scorhegami:devpassword@127.0.0.1:5432/scorhegami",
+    )
+
+    DB_OPTIONS: dict[str, Any] = Field(
+        default={
+            "pool_recycle": 60 * 60,
+        }
     )
 
     BALLDONTLIE_API_KEY: uuid.UUID

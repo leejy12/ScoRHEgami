@@ -68,7 +68,7 @@ class GameFetcherTask(AsyncComponent):
                 if not games:
                     return
 
-                result = await AppCtx.current.db.execute(
+                result = await AppCtx.current.db.session.execute(
                     pg_dialect.insert(m.Game)
                     .values(
                         [
@@ -91,14 +91,14 @@ class GameFetcherTask(AsyncComponent):
                 )
                 logger.info("Inserted %d new games", result.rowcount)
 
-                await AppCtx.current.db.commit()
+                await AppCtx.current.db.session.commit()
 
         except Exception:
             logger.exception(f"Failed to run {self.__class__.__name__}")
 
     async def _get_team_id(self, balldontlie_team_id: int) -> int:
         return (
-            await AppCtx.current.db.execute(
+            await AppCtx.current.db.session.execute(
                 sa_exp.select(m.Team.id).where(
                     m.Team.balldontlie_id == balldontlie_team_id
                 )

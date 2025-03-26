@@ -3,12 +3,53 @@ import dataclasses
 import hashlib
 import random
 import time
+from typing import Any, Callable
 
 from sqlalchemy import func as sa_func
 from sqlalchemy import types as sa_types
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    async_scoped_session,
+    async_sessionmaker,
+    create_async_engine,
+)
 from sqlalchemy.sql import expression as sa_exp
 
 from app.common.ctx import AppCtx
+
+
+class SqlaEngineAndSession:
+    def __init__(
+        self,
+        db_uri: str,
+        db_options: dict[str, Any],
+        *,
+        custom_scope_func: Callable[[], Any] | None = None,
+    ) -> None:
+        self.engine = create_async_engine(db_uri, **db_options)
+
+        self._scoped_session = async_scoped_session(
+            async_sessionmaker(
+                self.engine,
+                autocommit=False,
+                autoflush=False,
+                expire_on_commit=False,
+            ),
+            scopefunc=(
+                lambda: (
+                    AppCtx.current.ctx_id
+                    if custom_scope_func is None
+                    else custom_scope_func
+                )
+            ),
+        )
+
+    @property
+    def session(self) -> AsyncSession:
+        return self._scoped_session()
+
+    async def clear_scoped_session(self) -> None:
+        await self._scoped_session.remove()
 
 
 @dataclasses.dataclass
@@ -59,7 +100,9 @@ async def obtain_advisory_lock(
     deadline = time.monotonic() + timeout
 
     while deadline >= time.monotonic():
-        is_lock_obtained = (await AppCtx.current.db.execute(lock_query)).scalar()
+        is_lock_obtained = (
+            await AppCtx.current.db.session.execute(lock_query)
+        ).scalar()
 
         if is_lock_obtained:
             break
