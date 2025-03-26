@@ -42,7 +42,7 @@ class GameFetcherTask(AsyncComponent):
         while True:
             await self._run_internal()
 
-            await asyncio.sleep(60)
+            await asyncio.sleep(3600)
 
     async def _run_internal(self) -> None:
         try:
