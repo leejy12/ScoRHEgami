@@ -61,6 +61,7 @@ class GameUpdaterTask(AsyncComponent):
                     logger.error("%s", str(e))
                     return
 
+                # TODO: handle games that are cancelled.
                 ongoing_games = (
                     (
                         await AppCtx.current.db.session.execute(
@@ -74,7 +75,7 @@ class GameUpdaterTask(AsyncComponent):
                 if not ongoing_games:
                     return
 
-                logger.info("Updating %d ongoing games", len(ongoing_games))
+                logger.info("Updating %d games", len(ongoing_games))
 
                 # Pass the API client object to be shared among threads.
                 game_results = await self._fetch_all_game_results(
