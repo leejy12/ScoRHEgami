@@ -167,9 +167,9 @@ class GameGetResponse(BaseModel):
     home_team: TeamModel
     start_time: datetime.datetime | None
     end_time: datetime.datetime | None
-    box_score: list[int]
-    rhe: list[int]
-    is_scorhegami: bool
+    box_score: list[int] | None
+    rhe: list[int] | None
+    is_scorhegami: bool | None
     bref_url: str | None
 
 
