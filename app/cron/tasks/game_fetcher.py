@@ -3,6 +3,7 @@ import datetime
 import logging
 
 import dateutil.parser
+from balldontlie.mlb.models import MLBGame
 from sqlalchemy.dialects import postgresql as pg_dialect
 from sqlalchemy.sql import expression as sa_exp
 
@@ -55,14 +56,22 @@ class GameFetcherTask(AsyncComponent):
                 except Exception:
                     return
 
-                current_date = datetime.datetime.now(tz=datetime.UTC).strftime(
-                    "%Y-%m-%d"
-                )
-                logger.info("Fetching games for date = %s", current_date)
+                now = datetime.datetime.now(tz=datetime.UTC)
 
-                games = AppCtx.current.balldontlie_api.mlb.games.list(
-                    dates=[current_date]
-                ).data
+                cursor = (
+                    await AppCtx.current.db.session.execute(sa_exp.select(m.Cursor))
+                ).scalar_one_or_none()
+
+                if cursor is None:
+                    cursor = m.Cursor(date=now)
+                    AppCtx.current.db.session.add(cursor)
+                    await AppCtx.current.db.session.flush()
+
+                dates = self._get_dates_between(cursor.date, now)
+
+                logger.info("Fetching games for dates = %s", dates)
+
+                games = self._get_games_for_dates(dates)
                 logger.info("Fetched %d games", len(games))
 
                 if not games:
@@ -96,6 +105,20 @@ class GameFetcherTask(AsyncComponent):
         except Exception:
             logger.exception(f"Failed to run {self.__class__.__name__}")
 
+    def _get_games_for_dates(self, dates: list[str]) -> list[MLBGame]:
+        game_list = []
+        next_cursor = None
+
+        while True:
+            list_resp = AppCtx.current.balldontlie_api.mlb.games.list(
+                cursor=next_cursor, dates=dates
+            )
+            game_list.extend(list_resp.data)
+            next_cursor = list_resp.meta.next_cursor
+
+            if next_cursor is None:
+                return game_list
+
     async def _get_team_id(self, balldontlie_team_id: int) -> int:
         return (
             await AppCtx.current.db.session.execute(
@@ -104,6 +127,24 @@ class GameFetcherTask(AsyncComponent):
                 )
             )
         ).scalar_one()
+
+    def _get_dates_between(
+        self,
+        start_timestamp: datetime.datetime,
+        end_timestamp: datetime.datetime,
+    ):
+        start_date = start_timestamp.date()
+        end_date = end_timestamp.date()
+
+        if start_date > end_date:
+            start_date, end_date = end_date, start_date
+
+        num_days = (end_date - start_date).days + 1
+
+        return [
+            (start_date + datetime.timedelta(days=i)).strftime("%Y-%m-%d")
+            for i in range(num_days)
+        ]
 
     def is_healthy(self) -> bool:
         if not (
