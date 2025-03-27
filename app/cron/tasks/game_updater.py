@@ -47,7 +47,7 @@ class GameUpdaterTask(AsyncComponent):
         while True:
             await self._run_internal()
 
-            await asyncio.sleep(30)
+            await asyncio.sleep(60)
 
     async def _run_internal(self) -> None:
         try:
