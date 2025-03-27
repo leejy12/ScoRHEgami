@@ -80,6 +80,13 @@ class AdvisoryLockGameUpdaterTask(AdvisoryLockBase):
         return "game_updater_task"
 
 
+@dataclasses.dataclass
+class AdvisoryLockScorhegamiUpdaterTask(AdvisoryLockBase):
+    @property
+    def ident(self) -> str:
+        return "scorhegami_updater_task"
+
+
 async def obtain_advisory_lock(
     lock: AdvisoryLockBase,
     timeout: float = 5.0,
