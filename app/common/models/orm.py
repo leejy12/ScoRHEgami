@@ -11,9 +11,20 @@ from sqlalchemy import (
     Integer,
     String,
 )
+from sqlalchemy import func as sa_func
 from sqlalchemy.orm import Mapped, declarative_base, relationship
 
 Base = declarative_base()
+
+
+class Cursor(Base):
+    __tablename__ = "cursor"
+
+    date: Mapped[datetime.datetime] = Column(
+        TIMESTAMP(timezone=True),
+        primary_key=True,
+        server_default=sa_func.now(),
+    )
 
 
 class Team(Base):
