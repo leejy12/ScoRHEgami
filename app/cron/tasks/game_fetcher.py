@@ -69,6 +69,10 @@ class GameFetcherTask(AsyncComponent):
 
                 dates = self._get_dates_between(cursor.date, now)
 
+                await AppCtx.current.db.session.execute(
+                    sa_exp.update(m.Cursor).values(date=now)
+                )
+
                 logger.info("Fetching games for dates = %s", dates)
 
                 games = self._get_games_for_dates(dates)
