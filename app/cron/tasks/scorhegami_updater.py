@@ -85,7 +85,7 @@ class ScorhegamiUpdaterTask(AsyncComponent):
                         )
                     ).scalar() or 0
 
-                    game.is_scorhegami = rhe_cnt == 0
+                    game.is_scorhegami = rhe_cnt == 1
 
                     # TODO: Schedule a POST on X.
 
