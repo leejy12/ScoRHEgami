@@ -93,7 +93,10 @@ class ScorhegamiUpdaterTask(AsyncComponent):
                     game.is_scorhegami = rhe_cnt == 1
                     await AppCtx.current.db.session.flush()
 
-                    await self._post_tweet(game, rhe_cnt)
+                    try:
+                        await self._post_tweet(game, rhe_cnt)
+                    except Exception:
+                        pass
 
                 await AppCtx.current.db.session.commit()
 
