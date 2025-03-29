@@ -111,7 +111,6 @@ class GameUpdaterTask(AsyncComponent):
                             "rhe": sa_exp.bindparam("rhe"),
                         }
                     )
-                    .execution_options(synchronize_session=False)
                 )
 
                 await AppCtx.current.db.session.execute(update_stmt, updates)
