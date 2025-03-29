@@ -2,6 +2,7 @@ import asyncio
 import logging
 
 from sqlalchemy import func as sa_func
+from sqlalchemy import orm as sa_orm
 from sqlalchemy.sql import expression as sa_exp
 
 from app.common.ctx import AppCtx, bind_app_ctx
@@ -58,6 +59,10 @@ class ScorhegamiUpdaterTask(AsyncComponent):
                     (
                         await AppCtx.current.db.session.execute(
                             sa_exp.select(m.Game)
+                            .options(
+                                sa_orm.joinedload(m.Game.away_team),
+                                sa_orm.joinedload(m.Game.home_team),
+                            )
                             .where(
                                 m.Game.status == "STATUS_FINAL",
                                 m.Game.is_scorhegami.is_(None),
@@ -83,17 +88,61 @@ class ScorhegamiUpdaterTask(AsyncComponent):
                             .select_from(m.Game)
                             .where(m.Game.rhe == game.rhe)
                         )
-                    ).scalar() or 0
+                    ).scalar_one()
 
                     game.is_scorhegami = rhe_cnt == 1
                     await AppCtx.current.db.session.flush()
 
-                    # TODO: Schedule a POST on X.
+                    await self._post_tweet(game, rhe_cnt)
 
                 await AppCtx.current.db.session.commit()
 
         except Exception:
             logger.exception(f"Failed to run {self.__class__.__name__}")
+
+    async def _post_tweet(self, game: m.Game, rhe_cnt: int) -> None:
+        rhe = game.rhe
+
+        content = "FINAL\n"
+        content += "     R  H  E\n"
+        content += f"{game.away_team.short_name:3} {rhe[0]:2} {rhe[1]:2} {rhe[2]:2}\n"
+        content += f"{game.home_team.short_name:3} {rhe[3]:2} {rhe[4]:2} {rhe[5]:2}\n"
+
+        if game.is_scorhegami:
+            content += "\nThat's ScoRHEgami!\n"
+            num_scorhegamis = (
+                await AppCtx.current.db.session.execute(
+                    sa_exp.select(sa_func.count())
+                    .select_from(m.Game)
+                    .where(m.Game.is_scorhegami.is_(True))
+                )
+            ).scalar_one()
+            content += f"It's the {self._get_ordinal_string(num_scorhegamis)} unique RHE score in history."
+        else:
+            content += f"\nNot a ScoRHEgami. That score has happened {rhe_cnt - 1} "
+            content += ("time" if rhe_cnt == 2 else "times") + " before."
+            # TODO: Return the most recent game with that RHE.
+
+        # TODO: Actually post to X.
+        with open(
+            f"{game.id}-{game.away_team.short_name}-{game.home_team.short_name}.txt",
+            "w",
+        ) as f:
+            f.write(content)
+
+    def _get_ordinal_string(n: int) -> str:
+        if 11 <= (n % 100) <= 13:
+            return f"{n}th"
+
+        match n % 10:
+            case 1:
+                return f"{n}st"
+            case 2:
+                return f"{n}nd"
+            case 3:
+                return f"{n}rd"
+            case _:
+                return f"{n}th"
 
     def is_healthy(self) -> bool:
         if not (
