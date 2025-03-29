@@ -83,10 +83,6 @@ class GameUpdaterTask(AsyncComponent):
                     AppCtx.current.balldontlie_api,
                 )
 
-                game_results = [
-                    result for result in game_results if result.status == "STATUS_FINAL"
-                ]
-
                 now = datetime.datetime.now(tz=datetime.UTC)
 
                 for result in game_results:
@@ -94,7 +90,7 @@ class GameUpdaterTask(AsyncComponent):
                     await AppCtx.current.db.session.execute(
                         sa_exp.update(m.Game)
                         .values(
-                            end_time=now,
+                            end_time=now if result.status == "STATUS_FINAL" else None,
                             status=result.status,
                             box_score=box_score,
                             rhe=rhe,
