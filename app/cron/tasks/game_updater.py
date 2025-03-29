@@ -83,37 +83,24 @@ class GameUpdaterTask(AsyncComponent):
                     AppCtx.current.balldontlie_api,
                 )
 
+                game_results = [
+                    result for result in game_results if result.status == "STATUS_FINAL"
+                ]
+
                 now = datetime.datetime.now(tz=datetime.UTC)
 
-                updates = []
                 for result in game_results:
                     box_score, rhe = self._get_boxscore_and_rhe(result)
-                    updates.append(
-                        {
-                            "balldontlie_id": result.id,
-                            "end_time": now
-                            if result.status == "STATUS_FINAL"
-                            else None,
-                            "status": result.status,
-                            "box_score": box_score,
-                            "rhe": rhe,
-                        }
+                    await AppCtx.current.db.session.execute(
+                        sa_exp.update(m.Game)
+                        .values(
+                            end_time=now,
+                            status=result.status,
+                            box_score=box_score,
+                            rhe=rhe,
+                        )
+                        .where(m.Game.balldontlie_id == result.id)
                     )
-
-                update_stmt = (
-                    sa_exp.update(m.Game)
-                    .where(m.Game.balldontlie_id == sa_exp.bindparam("balldontlie_id"))
-                    .values(
-                        {
-                            "end_time": sa_exp.bindparam("end_time"),
-                            "status": sa_exp.bindparam("status"),
-                            "box_score": sa_exp.bindparam("box_score"),
-                            "rhe": sa_exp.bindparam("rhe"),
-                        }
-                    )
-                )
-
-                await AppCtx.current.db.session.execute(update_stmt, updates)
 
                 await AppCtx.current.db.session.commit()
 
