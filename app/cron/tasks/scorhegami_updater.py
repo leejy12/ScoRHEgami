@@ -86,6 +86,7 @@ class ScorhegamiUpdaterTask(AsyncComponent):
                     ).scalar() or 0
 
                     game.is_scorhegami = rhe_cnt == 1
+                    await AppCtx.current.db.session.flush()
 
                     # TODO: Schedule a POST on X.
 
