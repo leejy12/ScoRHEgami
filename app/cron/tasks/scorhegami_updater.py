@@ -135,7 +135,7 @@ class ScorhegamiUpdaterTask(AsyncComponent):
         ) as f:
             f.write(content)
 
-    def _get_ordinal_string(n: int) -> str:
+    def _get_ordinal_string(self, n: int) -> str:
         if 11 <= (n % 100) <= 13:
             return f"{n}th"
 
