@@ -14,10 +14,14 @@ dependencies = [
     "alembic==1.14.1",
     "asyncpg==0.30.0",
     "httpx==0.28.1",
-    "ruff>=0.11.2",
     "fastapi[standard]==0.115.11",
     "balldontlie==0.1.6",
     "python-dateutil==2.9.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.11.2",
 ]
 
 [build-system]
