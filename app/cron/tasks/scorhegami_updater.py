@@ -96,7 +96,7 @@ class ScorhegamiUpdaterTask(AsyncComponent):
                     try:
                         await self._post_tweet(game, rhe_cnt)
                     except Exception:
-                        pass
+                        logger.exception("Failed to post tweet. game_id = %d", game.id)
 
                 await AppCtx.current.db.session.commit()
 
@@ -127,8 +127,9 @@ class ScorhegamiUpdaterTask(AsyncComponent):
             # TODO: Return the most recent game with that RHE.
 
         # TODO: Actually post to X.
+        end_time = game.end_time.strftime("%Y-%m-%d_%H%M%S")
         with open(
-            f"{game.id}-{game.away_team.short_name}-{game.home_team.short_name}.txt",
+            f"tweets/{game.id}-{end_time}-{game.away_team.short_name}-{game.home_team.short_name}.txt",
             "w",
         ) as f:
             f.write(content)
