@@ -7,6 +7,7 @@ import logging
 import uuid
 from typing import TYPE_CHECKING, AsyncIterator
 
+import tweepy
 from balldontlie import BalldontlieAPI
 
 from app.common.settings import AppSettings
@@ -35,6 +36,7 @@ class AppCtx(metaclass=AppCtxMeta):
     settings: AppSettings
     db: SqlaEngineAndSession
     balldontlie_api: BalldontlieAPI
+    x_api: tweepy.Client
 
 
 async def create_app_ctx(app_settings: AppSettings) -> AppCtx:
@@ -45,6 +47,12 @@ async def create_app_ctx(app_settings: AppSettings) -> AppCtx:
         settings=app_settings,
         db=SqlaEngineAndSession(app_settings.DB_URI, app_settings.DB_OPTIONS),
         balldontlie_api=BalldontlieAPI(api_key=str(app_settings.BALLDONTLIE_API_KEY)),
+        x_api=tweepy.Client(
+            consumer_key=app_settings.X_API_KEY,
+            consumer_secret=app_settings.X_API_SECRET,
+            access_token=app_settings.X_API_ACCESS_TOKEN,
+            access_token_secret=app_settings.X_API_ACCESS_TOKEN_SECRET,
+        ),
     )
 
     _current_app_ctx_var.set(ctx)

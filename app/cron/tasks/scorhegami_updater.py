@@ -126,7 +126,8 @@ class ScorhegamiUpdaterTask(AsyncComponent):
             content += ("time" if rhe_cnt == 2 else "times") + " before."
             # TODO: Return the most recent game with that RHE.
 
-        # TODO: Actually post to X.
+        AppCtx.current.x_api.create_tweet(text=content)
+
         end_time = game.end_time.strftime("%Y-%m-%d_%H%M%S")
         with open(
             f"tweets/{game.id}-{end_time}-{game.away_team.short_name}-{game.home_team.short_name}.txt",

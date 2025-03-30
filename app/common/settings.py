@@ -23,3 +23,23 @@ class AppSettings(BaseSettings):
     )
 
     BALLDONTLIE_API_KEY: uuid.UUID
+
+    X_API_KEY: str = Field(
+        default="",
+        description="Consumer Keys > API Key",
+    )
+
+    X_API_SECRET: str = Field(
+        default="",
+        description="Consumer Keys > API Secret",
+    )
+
+    X_API_ACCESS_TOKEN: str = Field(
+        default="",
+        description="Authentication Tokens > Access Token",
+    )
+
+    X_API_ACCESS_TOKEN_SECRET: str = Field(
+        default="",
+        description="Authentication Tokens > Access Token Secret",
+    )
