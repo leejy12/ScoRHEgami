@@ -17,6 +17,7 @@ dependencies = [
     "fastapi[standard]==0.115.11",
     "balldontlie==0.1.6",
     "python-dateutil==2.9.0",
+    "tweepy==4.15.0",
 ]
 
 [project.optional-dependencies]
