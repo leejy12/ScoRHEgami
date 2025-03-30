@@ -126,7 +126,14 @@ class ScorhegamiUpdaterTask(AsyncComponent):
             content += ("time" if rhe_cnt == 2 else "times") + " before."
             # TODO: Return the most recent game with that RHE.
 
-        AppCtx.current.x_api.create_tweet(text=content)
+        try:
+            # Post to X
+            logger.info("Posting tweet for game %d", game.id)
+            AppCtx.current.x_api.create_tweet(text=content)
+            logger.info("Successfully posted tweet for game %d", game.id)
+        except Exception as e:
+            logger.error("X API error: %s", str(e))
+            raise
 
         end_time = game.end_time.strftime("%Y-%m-%d_%H%M%S")
         with open(
