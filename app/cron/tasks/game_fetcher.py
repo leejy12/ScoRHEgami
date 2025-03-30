@@ -2,7 +2,6 @@ import asyncio
 import datetime
 import logging
 
-import dateutil.parser
 from balldontlie.mlb.models import MLBGame
 from sqlalchemy.dialects import postgresql as pg_dialect
 from sqlalchemy.sql import expression as sa_exp
@@ -89,7 +88,7 @@ class GameFetcherTask(AsyncComponent):
                                 "balldontlie_id": game.id,
                                 "away_id": await self._get_team_id(game.away_team.id),
                                 "home_id": await self._get_team_id(game.home_team.id),
-                                "start_time": dateutil.parser.isoparse(game.date),
+                                "start_time": None,
                                 "end_time": None,
                                 "box_score": None,
                                 "rhe": None,

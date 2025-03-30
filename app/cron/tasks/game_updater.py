@@ -85,11 +85,17 @@ class GameUpdaterTask(AsyncComponent):
 
                 now = datetime.datetime.now(tz=datetime.UTC)
 
-                for result in game_results:
+                for game, result in zip(ongoing_games, game_results):
                     box_score, rhe = self._get_boxscore_and_rhe(result)
                     await AppCtx.current.db.session.execute(
                         sa_exp.update(m.Game)
                         .values(
+                            start_time=now
+                            if (
+                                game.status == "STATUS_SCHEDULED"
+                                and result.status == "STATUS_IN_PROGRESS"
+                            )
+                            else game.start_time,
                             end_time=now if result.status == "STATUS_FINAL" else None,
                             status=result.status,
                             box_score=box_score,
