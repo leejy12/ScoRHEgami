@@ -133,7 +133,6 @@ class ScorhegamiUpdaterTask(AsyncComponent):
             logger.info("Successfully posted tweet for game %d", game.id)
         except Exception as e:
             logger.error("X API error: %s", str(e))
-            raise
 
         end_time = game.end_time.strftime("%Y-%m-%d_%H%M%S")
         with open(
