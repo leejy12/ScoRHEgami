@@ -129,9 +129,31 @@ class ScorhegamiUpdaterTask(AsyncComponent):
         try:
             # Post to X
             logger.info("Posting tweet for game %d", game.id)
-            AppCtx.current.x_api.create_tweet(text=content)
-            logger.info("Successfully posted tweet for game %d", game.id)
+            resp = AppCtx.current.x_api.create_tweet(text=content)
+            tweet_id: str = resp.data["id"]
+
+            await AppCtx.current.db.session.execute(
+                sa_exp.insert(m.Tweet).values(
+                    game_id=game.id,
+                    tweet_id=tweet_id,
+                    content=content,
+                    tweet_failed_reason=None,
+                )
+            )
+            logger.info(
+                "Successfully posted tweet for game %d (tweet id = %s)",
+                game.id,
+                tweet_id,
+            )
         except Exception as e:
+            await AppCtx.current.db.session.execute(
+                sa_exp.insert(m.Tweet).values(
+                    game_id=game.id,
+                    tweet_id=tweet_id,
+                    content=None,
+                    tweet_failed_reason=str(e),
+                )
+            )
             logger.error("X API error: %s", str(e))
 
         end_time = game.end_time.strftime("%Y-%m-%d_%H%M%S")
