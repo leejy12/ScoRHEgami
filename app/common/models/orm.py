@@ -103,14 +103,3 @@ class Game(Base):
         Index("ix_game_rhe", rhe, postgresql_using="gin"),
         CheckConstraint("home_id != away_id", name="different_teams_constraint"),
     )
-
-
-class ScorhegamiGame(Base):
-    __tablename__ = "scorhegami_game"
-
-    id = Column(
-        Integer,
-        primary_key=True,
-        autoincrement=True,
-    )
-    game_id = Column(Integer, ForeignKey("game.id"), nullable=False)
