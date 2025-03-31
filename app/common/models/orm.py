@@ -17,7 +17,24 @@ from sqlalchemy.orm import Mapped, declarative_base, relationship
 Base = declarative_base()
 
 
-class Cursor(Base):
+class OrmBase(Base):
+    __abstract__ = True
+
+    created_at: Mapped[datetime.datetime] = Column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        server_default=sa_func.now(),
+    )
+
+    updated_at: Mapped[datetime.datetime] = Column(
+        TIMESTAMP(timezone=True),
+        nullable=False,
+        server_default=sa_func.now(),
+        onupdate=sa_func.now(),
+    )
+
+
+class Cursor(OrmBase):
     __tablename__ = "cursor"
 
     date: Mapped[datetime.datetime] = Column(
@@ -27,7 +44,7 @@ class Cursor(Base):
     )
 
 
-class Team(Base):
+class Team(OrmBase):
     __tablename__ = "team"
 
     id: Mapped[int] = Column(
@@ -55,7 +72,7 @@ class Team(Base):
     )
 
 
-class Game(Base):
+class Game(OrmBase):
     __tablename__ = "game"
 
     id: Mapped[int] = Column(
