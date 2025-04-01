@@ -108,7 +108,7 @@ class ScorhegamiUpdaterTask(AsyncComponent):
 
         try:
             logger.info("Posting tweet for game %d", game.id)
-            resp = AppCtx.current.x_api.create_tweet(text=content)
+            resp = await AppCtx.current.x_api.create_tweet(text=content)
             tweet_id: str = resp.data["id"]
 
             await AppCtx.current.db.session.execute(
