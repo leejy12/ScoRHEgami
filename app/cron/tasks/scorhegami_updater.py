@@ -104,30 +104,9 @@ class ScorhegamiUpdaterTask(AsyncComponent):
             logger.exception(f"Failed to run {self.__class__.__name__}")
 
     async def _post_tweet(self, game: m.Game, rhe_cnt: int) -> None:
-        rhe = game.rhe
-
-        content = "FINAL\n"
-        content += "     R  H  E\n"
-        content += f"{game.away_team.short_name:3} {rhe[0]:2} {rhe[1]:2} {rhe[2]:2}\n"
-        content += f"{game.home_team.short_name:3} {rhe[3]:2} {rhe[4]:2} {rhe[5]:2}\n"
-
-        if game.is_scorhegami:
-            content += "\nThat's ScoRHEgami!\n"
-            num_scorhegamis = (
-                await AppCtx.current.db.session.execute(
-                    sa_exp.select(sa_func.count())
-                    .select_from(m.Game)
-                    .where(m.Game.is_scorhegami.is_(True))
-                )
-            ).scalar_one()
-            content += f"It's the {self._get_ordinal_string(num_scorhegamis)} unique RHE score in history."
-        else:
-            content += f"\nNot a ScoRHEgami. That score has happened {rhe_cnt - 1} "
-            content += ("time" if rhe_cnt == 2 else "times") + " before."
-            # TODO: Return the most recent game with that RHE.
+        content = await self._get_tweet_content(game, rhe_cnt)
 
         try:
-            # Post to X
             logger.info("Posting tweet for game %d", game.id)
             resp = AppCtx.current.x_api.create_tweet(text=content)
             tweet_id: str = resp.data["id"]
@@ -149,19 +128,44 @@ class ScorhegamiUpdaterTask(AsyncComponent):
             await AppCtx.current.db.session.execute(
                 sa_exp.insert(m.Tweet).values(
                     game_id=game.id,
-                    tweet_id=tweet_id,
+                    tweet_id=None,
                     content=None,
                     tweet_failed_reason=str(e),
                 )
             )
             logger.error("X API error: %s", str(e))
+            raise
 
-        end_time = game.end_time.strftime("%Y-%m-%d_%H%M%S")
-        with open(
-            f"tweets/{game.id}-{end_time}-{game.away_team.short_name}-{game.home_team.short_name}.txt",
-            "w",
-        ) as f:
-            f.write(content)
+    async def _get_tweet_content(self, game: m.Game, rhe_cnt: int) -> str:
+        def _add_spaces(short_name: str) -> str:
+            if len(short_name) == 2:
+                return short_name + "  "
+            else:
+                return short_name
+
+        rhe = game.rhe
+
+        content = "FINAL\n"
+        content += "          R  H  E\n"
+        content += f"{_add_spaces(game.away_team.short_name)}  {rhe[0]:2} {rhe[1]:2} {rhe[2]:2}\n"
+        content += f"{_add_spaces(game.home_team.short_name)}  {rhe[3]:2} {rhe[4]:2} {rhe[5]:2}\n"
+
+        if game.is_scorhegami:
+            content += "\nThat's ScoRHEgami!\n"
+            num_scorhegamis = (
+                await AppCtx.current.db.session.execute(
+                    sa_exp.select(sa_func.count())
+                    .select_from(m.Game)
+                    .where(m.Game.is_scorhegami.is_(True))
+                )
+            ).scalar_one()
+            content += f"It's the {self._get_ordinal_string(num_scorhegamis)} unique RHE score in history."
+        else:
+            content += f"\nNot a ScoRHEgami. That score has happened {rhe_cnt - 1} "
+            content += ("time" if rhe_cnt == 2 else "times") + " before."
+            # TODO: Return the most recent game with that RHE.
+
+        return content
 
     def _get_ordinal_string(self, n: int) -> str:
         if 11 <= (n % 100) <= 13:
