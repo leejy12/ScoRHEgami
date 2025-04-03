@@ -5,6 +5,7 @@ from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 
 from balldontlie import BalldontlieAPI
+from balldontlie.exceptions import NotFoundError
 from balldontlie.mlb.models import MLBGame
 from sqlalchemy.sql import expression as sa_exp
 
@@ -86,6 +87,21 @@ class GameUpdaterTask(AsyncComponent):
                 now = datetime.datetime.now(tz=datetime.UTC)
 
                 for game, result in zip(ongoing_games, game_results):
+                    if isinstance(result, NotFoundError):
+                        logger.warning(
+                            "Deleting game id %d due to NotFoundError",
+                            game.id,
+                        )
+                        await AppCtx.current.db.session.execute(
+                            sa_exp.delete(m.Game).where(
+                                m.Game.balldontlie_id == game.balldontlie_id
+                            )
+                        )
+                        continue
+                    elif isinstance(result, Exception):
+                        logger.exception("Failed to get result of game id %d", game.id)
+                        continue
+
                     box_score, rhe = self._get_boxscore_and_rhe(result)
                     await AppCtx.current.db.session.execute(
                         sa_exp.update(m.Game)
@@ -111,7 +127,7 @@ class GameUpdaterTask(AsyncComponent):
 
     async def _fetch_all_game_results(
         self, game_ids: list[int], api: BalldontlieAPI
-    ) -> list[MLBGame]:
+    ) -> list[MLBGame | Exception]:
         coroutines = [self._fetch_game_result(game_id, api) for game_id in game_ids]
 
         return await asyncio.gather(*coroutines, return_exceptions=True)
