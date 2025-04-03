@@ -827,7 +827,6 @@ dependencies = [
     { name = "fastapi", extra = ["standard"] },
     { name = "httpx" },
     { name = "lxml" },
-    { name = "mypy" },
     { name = "psycopg", extra = ["binary"] },
     { name = "pydantic-settings" },
     { name = "python-dateutil" },
@@ -838,6 +837,7 @@ dependencies = [
 
 [package.optional-dependencies]
 dev = [
+    { name = "mypy" },
     { name = "ruff" },
 ]
 
@@ -850,7 +850,7 @@ requires-dist = [
     { name = "fastapi", extras = ["standard"], specifier = "==0.115.11" },
     { name = "httpx", specifier = "==0.28.1" },
     { name = "lxml", specifier = "==5.3.0" },
-    { name = "mypy", specifier = ">=1.15.0" },
+    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.15.0" },
     { name = "psycopg", extras = ["binary"], specifier = "==3.2.3" },
     { name = "pydantic-settings", specifier = "==2.7.1" },
     { name = "python-dateutil", specifier = "==2.9.0" },
