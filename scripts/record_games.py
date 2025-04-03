@@ -1,4 +1,4 @@
-import app.baseball_reference as bref
+import scripts.baseball_reference as bref
 import time
 import random
 
