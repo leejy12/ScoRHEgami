@@ -67,7 +67,7 @@ class ScorhegamiUpdaterTask(AsyncComponent):
                                 m.Game.status == "STATUS_FINAL",
                                 m.Game.is_scorhegami.is_(None),
                             )
-                            .order_by(m.Game.end_time.desc())
+                            .order_by(m.Game.end_time.asc())
                         )
                     )
                     .scalars()
