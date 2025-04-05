@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import dateutil
 import logging
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
@@ -7,6 +8,7 @@ from functools import partial
 from balldontlie import BalldontlieAPI
 from balldontlie.exceptions import NotFoundError
 from balldontlie.mlb.models import MLBGame
+import dateutil.parser
 from sqlalchemy.sql import expression as sa_exp
 
 from app.common.ctx import AppCtx, bind_app_ctx
@@ -106,7 +108,7 @@ class GameUpdaterTask(AsyncComponent):
                     await AppCtx.current.db.session.execute(
                         sa_exp.update(m.Game)
                         .values(
-                            start_time=result.date,
+                            start_time=dateutil.parser.parse(result.date),
                             end_time=now if result.status == "STATUS_FINAL" else None,
                             status=result.status,
                             box_score=box_score,
