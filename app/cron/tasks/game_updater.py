@@ -106,12 +106,7 @@ class GameUpdaterTask(AsyncComponent):
                     await AppCtx.current.db.session.execute(
                         sa_exp.update(m.Game)
                         .values(
-                            start_time=now
-                            if (
-                                game.status == "STATUS_SCHEDULED"
-                                and result.status == "STATUS_IN_PROGRESS"
-                            )
-                            else game.start_time,
+                            start_time=result.date,
                             end_time=now if result.status == "STATUS_FINAL" else None,
                             status=result.status,
                             box_score=box_score,
