@@ -346,7 +346,7 @@
                         ${formatBoxScore(game.box_score, game.rhe)}
                     </td>
                     <td>
-                        <a href=${game.bref_url}>link</a>
+                        ${game.bref_url ? `<a href="${game.bref_url}">link</a>` : ''}
                     </td>
                 `;
 
