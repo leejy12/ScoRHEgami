@@ -3,6 +3,7 @@ import datetime
 import logging
 
 from balldontlie.mlb.models import MLBGame
+from balldontlie.exceptions import BallDontLieException
 from sqlalchemy.dialects import postgresql as pg_dialect
 from sqlalchemy.sql import expression as sa_exp
 
@@ -81,7 +82,15 @@ class GameFetcherTask(AsyncComponent):
 
                 logger.info("Fetching games for dates = %s", dates)
 
-                games = self._get_games_for_dates(dates)
+                try:
+                    games = self._get_games_for_dates(dates)
+                except BallDontLieException as e:
+                    logger.error(
+                        f"Failed to fetch games (dates = {dates}): "
+                        f"message={e}, status_code={e.status_code}, response={e.response_data}"
+                    )
+                    return
+
                 logger.info("Fetched %d games", len(games))
 
                 if not games:
