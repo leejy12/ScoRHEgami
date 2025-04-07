@@ -8,6 +8,7 @@ from sqlalchemy.sql import expression as sa_exp
 
 from app.common.ctx import AppCtx, bind_app_ctx
 from app.common.models import orm as m
+from app.common.models.app import CronTaskEnum
 from app.common.utils import sqla as sqla_utils
 
 from .base import AsyncComponent
@@ -58,18 +59,24 @@ class GameFetcherTask(AsyncComponent):
                 now = datetime.datetime.now(tz=datetime.UTC)
 
                 cursor = (
-                    await AppCtx.current.db.session.execute(sa_exp.select(m.Cursor))
+                    await AppCtx.current.db.session.execute(
+                        sa_exp.select(m.Cursor).where(
+                            m.Cursor.task_name == CronTaskEnum.game_fetcher
+                        )
+                    )
                 ).scalar_one_or_none()
 
                 if cursor is None:
-                    cursor = m.Cursor(date=now)
+                    cursor = m.Cursor(
+                        task_name=CronTaskEnum.game_fetcher.value, last_completed=now
+                    )
                     AppCtx.current.db.session.add(cursor)
                     await AppCtx.current.db.session.flush()
 
-                dates = self._get_dates_between(cursor.date, now)
+                dates = self._get_dates_between(cursor.last_completed, now)
 
                 await AppCtx.current.db.session.execute(
-                    sa_exp.update(m.Cursor).values(date=now)
+                    sa_exp.update(m.Cursor).values(last_completed=now)
                 )
 
                 logger.info("Fetching games for dates = %s", dates)
