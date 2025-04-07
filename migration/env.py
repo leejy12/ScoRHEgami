@@ -12,7 +12,7 @@ if config.config_file_name is not None:
 
 
 def _app_init():
-    from app.common.models.orm import Base
+    from app.common.models.orm.base_ import Base
     from app.common.settings import AppSettings
 
     app_settings = AppSettings()
