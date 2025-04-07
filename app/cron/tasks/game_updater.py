@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 
 from balldontlie import BalldontlieAPI
-from balldontlie.exceptions import NotFoundError
+from balldontlie.exceptions import BallDontLieException, NotFoundError
 from balldontlie.mlb.models import MLBGame
 import dateutil.parser
 from sqlalchemy.sql import expression as sa_exp
@@ -140,8 +140,11 @@ class GameUpdaterTask(AsyncComponent):
     ) -> MLBGame:
         try:
             return api.mlb.games.get(balldontlie_game_id).data
-        except Exception as e:
-            logger.error(f"Failed to get game result for ID {balldontlie_game_id}: {e}")
+        except BallDontLieException as e:
+            logger.error(
+                f"Failed to get game result (balldontlie_id = {balldontlie_game_id}): "
+                f"message={e}, status_code={e.status_code}, response={e.response_data}"
+            )
             raise
 
     def _get_boxscore_and_rhe(self, result: MLBGame) -> tuple[list[int], list[int]]:
