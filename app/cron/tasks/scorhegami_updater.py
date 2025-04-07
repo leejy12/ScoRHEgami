@@ -129,7 +129,7 @@ class ScorhegamiUpdaterTask(AsyncComponent):
                 sa_exp.insert(m.Tweet).values(
                     game_id=game.id,
                     tweet_id=None,
-                    content=None,
+                    content=content,
                     tweet_failed_reason=str(e),
                 )
             )
