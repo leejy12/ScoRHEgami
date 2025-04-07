@@ -101,7 +101,7 @@ class GameUpdaterTask(AsyncComponent):
                         )
                         continue
                     elif isinstance(result, Exception):
-                        logger.exception("Failed to get result of game id %d", game.id)
+                        logger.error("Failed to get result of game id %d", game.id)
                         continue
 
                     box_score, rhe = self._get_boxscore_and_rhe(result)
