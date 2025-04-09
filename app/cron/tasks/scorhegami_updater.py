@@ -7,6 +7,7 @@ from sqlalchemy.sql import expression as sa_exp
 
 from app.common.ctx import AppCtx, bind_app_ctx
 from app.common.models import orm as m
+from app.common.models.app import TweetStatusEnum
 from app.common.utils import sqla as sqla_utils
 
 from .base import AsyncComponent
@@ -93,48 +94,25 @@ class ScorhegamiUpdaterTask(AsyncComponent):
                     game.is_scorhegami = rhe_cnt == 1
                     await AppCtx.current.db.session.flush()
 
-                    try:
-                        await self._post_tweet(game, rhe_cnt)
-                    except Exception:
-                        logger.exception("Failed to post tweet. game_id = %d", game.id)
+                    await self._prepare_tweet(game, rhe_cnt)
 
                 await AppCtx.current.db.session.commit()
 
         except Exception:
             logger.exception(f"Failed to run {self.__class__.__name__}")
 
-    async def _post_tweet(self, game: m.Game, rhe_cnt: int) -> None:
+    async def _prepare_tweet(self, game: m.Game, rhe_cnt: int) -> None:
         content = await self._get_tweet_content(game, rhe_cnt)
 
-        try:
-            logger.info("Posting tweet for game %d", game.id)
-            resp = await AppCtx.current.x_api.create_tweet(text=content)
-            tweet_id: str = resp.data["id"]
-
-            await AppCtx.current.db.session.execute(
-                sa_exp.insert(m.Tweet).values(
-                    game_id=game.id,
-                    tweet_id=tweet_id,
-                    content=content,
-                    tweet_failed_reason=None,
-                )
+        await AppCtx.current.db.session.execute(
+            sa_exp.insert(m.Tweet).values(
+                game_id=game.id,
+                tweet_id=None,
+                content=content,
+                tweet_failed_reason=None,
+                status=TweetStatusEnum.pending,
             )
-            logger.info(
-                "Successfully posted tweet for game %d (tweet id = %s)",
-                game.id,
-                tweet_id,
-            )
-        except Exception as e:
-            await AppCtx.current.db.session.execute(
-                sa_exp.insert(m.Tweet).values(
-                    game_id=game.id,
-                    tweet_id=None,
-                    content=content,
-                    tweet_failed_reason=str(e),
-                )
-            )
-            logger.error("X API error: %s", str(e))
-            raise
+        )
 
     async def _get_tweet_content(self, game: m.Game, rhe_cnt: int) -> str:
         def _add_spaces(short_name: str) -> str:

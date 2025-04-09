@@ -6,7 +6,10 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped
 
+from app.common.models.app import TweetStatusEnum
+
 from .base_ import OrmBase
+
 
 class Tweet(OrmBase):
     __tablename__ = "tweet"
@@ -24,3 +27,4 @@ class Tweet(OrmBase):
     content: Mapped[str | None] = Column(String, nullable=True)
 
     tweet_failed_reason = Column(String, nullable=True)
+    status: Mapped[TweetStatusEnum] = Column(String, nullable=False)

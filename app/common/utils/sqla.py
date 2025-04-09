@@ -87,6 +87,13 @@ class AdvisoryLockScorhegamiUpdaterTask(AdvisoryLockBase):
         return "scorhegami_updater_task"
 
 
+@dataclasses.dataclass
+class AdvisoryLockTweeterTask(AdvisoryLockBase):
+    @property
+    def ident(self) -> str:
+        return "tweeter_task"
+
+
 async def obtain_advisory_lock(
     lock: AdvisoryLockBase,
     timeout: float = 5.0,
