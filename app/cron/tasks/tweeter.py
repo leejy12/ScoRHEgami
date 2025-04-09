@@ -112,7 +112,10 @@ class TweeterTask(AsyncComponent):
             await AppCtx.current.db.session.execute(
                 sa_exp.select(sa_func.count())
                 .select_from(m.Tweet)
-                .where(m.Tweet.created_at > now - datetime.timedelta(hours=24))
+                .where(
+                    m.Tweet.status == TweetStatusEnum.success,
+                    m.Tweet.created_at > now - datetime.timedelta(hours=24),
+                )
             )
         ).scalar() or 0
 
