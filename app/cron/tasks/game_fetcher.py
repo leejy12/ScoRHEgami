@@ -2,8 +2,8 @@ import asyncio
 import datetime
 import logging
 
-from balldontlie.mlb.models import MLBGame
 from balldontlie.exceptions import BallDontLieException
+from balldontlie.mlb.models import MLBGame
 from sqlalchemy.dialects import postgresql as pg_dialect
 from sqlalchemy.sql import expression as sa_exp
 

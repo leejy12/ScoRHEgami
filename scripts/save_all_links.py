@@ -1,5 +1,6 @@
-import scripts.baseball_reference as bref
 import time
+
+import scripts.baseball_reference as bref
 
 
 def main():

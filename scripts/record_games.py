@@ -1,6 +1,7 @@
-import scripts.baseball_reference as bref
-import time
 import random
+import time
+
+import scripts.baseball_reference as bref
 
 
 def main():

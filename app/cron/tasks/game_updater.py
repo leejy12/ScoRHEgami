@@ -1,14 +1,14 @@
 import asyncio
 import datetime
-import dateutil
 import logging
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 
+import dateutil
+import dateutil.parser
 from balldontlie import BalldontlieAPI
 from balldontlie.exceptions import BallDontLieException, NotFoundError
 from balldontlie.mlb.models import MLBGame
-import dateutil.parser
 from sqlalchemy.sql import expression as sa_exp
 
 from app.common.ctx import AppCtx, bind_app_ctx

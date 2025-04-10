@@ -2,11 +2,10 @@ import asyncio
 import datetime
 import logging
 
-from sqlalchemy import func as sa_func
-from sqlalchemy.sql import expression as sa_exp
-
 import tweepy
 import tweepy.errors
+from sqlalchemy import func as sa_func
+from sqlalchemy.sql import expression as sa_exp
 
 from app.common.ctx import AppCtx, bind_app_ctx
 from app.common.models import orm as m

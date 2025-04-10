@@ -3,7 +3,6 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
-
 from app.common.ctx import bind_app_ctx, create_app_ctx
 from app.common.settings import AppSettings
 

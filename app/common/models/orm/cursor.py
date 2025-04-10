@@ -13,6 +13,7 @@ from app.common.models.app import CronTaskEnum
 
 from .base_ import OrmBase
 
+
 class Cursor(OrmBase):
     __tablename__ = "cursor"
 
@@ -28,4 +29,3 @@ class Cursor(OrmBase):
         TIMESTAMP(timezone=True),
         server_default=sa_func.now(),
     )
-

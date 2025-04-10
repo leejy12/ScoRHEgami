@@ -6,7 +6,6 @@ from sqlalchemy.sql import expression as sa_exp
 from app.common.ctx import AppCtx
 from app.common.models import orm as m
 
-
 router = APIRouter(prefix="/team", tags=["team"])
 
 

@@ -14,8 +14,8 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, relationship
 
 from .base_ import OrmBase
-
 from .team import Team
+
 
 class Game(OrmBase):
     __tablename__ = "game"
@@ -65,4 +65,3 @@ class Game(OrmBase):
         Index("ix_game_rhe", rhe, postgresql_using="gin"),
         CheckConstraint("home_id != away_id", name="different_teams_constraint"),
     )
-

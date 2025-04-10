@@ -1,8 +1,8 @@
-from ..config import templates
-
 from fastapi import Request
 from fastapi.responses import HTMLResponse
 from fastapi.routing import APIRouter
+
+from ..config import templates
 
 game_page_router = APIRouter(prefix="/game")
 

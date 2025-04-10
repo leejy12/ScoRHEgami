@@ -8,8 +8,8 @@ import uuid
 from typing import TYPE_CHECKING, AsyncIterator
 
 import tweepy
-from balldontlie import BalldontlieAPI
 import tweepy.asynchronous.client
+from balldontlie import BalldontlieAPI
 
 from app.common.settings import AppSettings
 

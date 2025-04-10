@@ -9,6 +9,7 @@ from sqlalchemy.orm import Mapped
 
 from .base_ import OrmBase
 
+
 class Team(OrmBase):
     __tablename__ = "team"
 
@@ -35,4 +36,3 @@ class Team(OrmBase):
             postgresql_where=(is_most_recent_name.is_(True)),
         ),
     )
-

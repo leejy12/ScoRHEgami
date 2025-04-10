@@ -1,7 +1,8 @@
 import subprocess
+from datetime import datetime
+
 import requests
 from bs4 import BeautifulSoup, Comment, Tag
-from datetime import datetime
 from pydantic import BaseModel
 
 BREF_BASEURL = "https://www.baseball-reference.com"
