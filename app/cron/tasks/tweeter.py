@@ -95,7 +95,7 @@ class TweeterTask(AsyncComponent):
                     tweet.tweet_failed_reason = str(e)
 
                     logger.error(
-                        "Faield to post tweet for game %d, reason = %s",
+                        "Failed to post tweet for game %d, reason = %s",
                         tweet.game_id,
                         tweet.tweet_failed_reason,
                     )
@@ -113,7 +113,7 @@ class TweeterTask(AsyncComponent):
                 .select_from(m.Tweet)
                 .where(
                     m.Tweet.status == TweetStatusEnum.success,
-                    m.Tweet.created_at > now - datetime.timedelta(hours=24),
+                    m.Tweet.posted_at > now - datetime.timedelta(hours=24),
                 )
             )
         ).scalar() or 0
