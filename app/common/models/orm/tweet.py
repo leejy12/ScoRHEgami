@@ -1,4 +1,7 @@
+import datetime
+
 from sqlalchemy import (
+    TIMESTAMP,
     Column,
     ForeignKey,
     Integer,
@@ -28,3 +31,8 @@ class Tweet(OrmBase):
 
     tweet_failed_reason = Column(String, nullable=True)
     status: Mapped[TweetStatusEnum] = Column(String, nullable=False)
+
+    posted_at: Mapped[datetime.datetime] = Column(
+        TIMESTAMP(timezone=True),
+        nullable=True,
+    )
