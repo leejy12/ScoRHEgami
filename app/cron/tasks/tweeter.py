@@ -91,12 +91,13 @@ class TweeterTask(AsyncComponent):
                             tweet.game_id,
                             tweet_id,
                         )
-                        tweet.status = TweetStatusEnum.success
                         tweet.tweet_id = tweet_id
-
+                        tweet.status = TweetStatusEnum.success
+                        tweet.posted_at = datetime.datetime.now(tz=datetime.UTC)
                     else:
                         logger.info("Tweeting is disabled")
                         tweet.status = TweetStatusEnum.skipped
+                        tweet.posted_at = datetime.datetime.now(tz=datetime.UTC)
 
                 except tweepy.errors.HTTPException as e:
                     tweet.status = TweetStatusEnum.failed
