@@ -43,3 +43,8 @@ class AppSettings(BaseSettings):
         default="",
         description="Authentication Tokens > Access Token Secret",
     )
+
+    DISABLE_TWEETS: bool = Field(
+        default=False,
+        description="Option to disable posting to X",
+    )

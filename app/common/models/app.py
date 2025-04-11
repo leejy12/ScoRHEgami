@@ -17,3 +17,4 @@ class TweetStatusEnum(str, enum.Enum):
     pending = "pending"
     success = "success"
     failed = "failed"
+    skipped = "skipped"

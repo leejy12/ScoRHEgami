@@ -80,16 +80,24 @@ class TweeterTask(AsyncComponent):
                 try:
                     logger.info("Posting tweet for game %d", tweet.game_id)
 
-                    resp = await AppCtx.current.x_api.create_tweet(text=tweet.content)
-                    tweet_id: str = resp.data["id"]
+                    if not self.app_ctx.settings.DISABLE_TWEETS:
+                        resp = await AppCtx.current.x_api.create_tweet(
+                            text=tweet.content
+                        )
+                        tweet_id: str = resp.data["id"]
 
-                    logger.info(
-                        "Successfully posted tweet for game %d (tweet id = %s)",
-                        tweet.game_id,
-                        tweet_id,
-                    )
-                    tweet.status = TweetStatusEnum.success
-                    tweet.tweet_id = tweet_id
+                        logger.info(
+                            "Successfully posted tweet for game %d (tweet id = %s)",
+                            tweet.game_id,
+                            tweet_id,
+                        )
+                        tweet.status = TweetStatusEnum.success
+                        tweet.tweet_id = tweet_id
+
+                    else:
+                        logger.info("Tweeting is disabled")
+                        tweet.status = TweetStatusEnum.skipped
+
                 except tweepy.errors.HTTPException as e:
                     tweet.status = TweetStatusEnum.failed
                     tweet.tweet_failed_reason = str(e)
@@ -106,6 +114,9 @@ class TweeterTask(AsyncComponent):
             logger.exception(f"Failed to run {self.__class__.__name__}")
 
     async def _under_rate_limit(self) -> bool:
+        if self.app_ctx.settings.DISABLE_TWEETS:
+            return True
+
         now = datetime.datetime.now(tz=datetime.UTC)
         tweet_cnt = (
             await AppCtx.current.db.session.execute(
