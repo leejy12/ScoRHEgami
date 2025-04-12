@@ -68,7 +68,10 @@ class GameUpdaterTask(AsyncComponent):
                 ongoing_games = (
                     (
                         await AppCtx.current.db.session.execute(
-                            sa_exp.select(m.Game).where(m.Game.status != "STATUS_FINAL")
+                            sa_exp.select(m.Game).where(
+                                m.Game.status != "STATUS_FINAL",
+                                m.Game.status != "STATUS_POSTPONED",
+                            )
                         )
                     )
                     .scalars()
