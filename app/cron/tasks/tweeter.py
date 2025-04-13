@@ -48,7 +48,7 @@ class TweeterTask(AsyncComponent):
         while True:
             await self._run_internal()
 
-            await asyncio.sleep(300)
+            await asyncio.sleep(60)
 
     async def _run_internal(self) -> None:
         try:
