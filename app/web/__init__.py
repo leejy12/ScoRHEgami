@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.common.ctx import bind_app_ctx, create_app_ctx
@@ -31,5 +32,16 @@ def create_app() -> FastAPI:
         return response
 
     app.add_middleware(BaseHTTPMiddleware, dispatch=app_ctx_middleware)
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[
+            "http://localhost:3000",
+            "https://mlbscorhegami.com",
+        ],
+        allow_credentials=True,
+        allow_methods=["GET"],
+        allow_headers=["*"],
+    )
 
     return app
