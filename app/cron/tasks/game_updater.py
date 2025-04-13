@@ -64,7 +64,6 @@ class GameUpdaterTask(AsyncComponent):
                     logger.error("%s", str(e))
                     return
 
-                # TODO: handle games that are cancelled.
                 ongoing_games = (
                     (
                         await AppCtx.current.db.session.execute(
