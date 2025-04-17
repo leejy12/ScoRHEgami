@@ -79,6 +79,7 @@ class TweeterTask(AsyncComponent):
 
                 try:
                     logger.info("Posting tweet for game %d", tweet.game_id)
+                    tweet.posted_at = datetime.datetime.now(tz=datetime.UTC)
 
                     if not self.app_ctx.settings.DISABLE_TWEETS:
                         resp = await AppCtx.current.x_api.create_tweet(
@@ -93,11 +94,9 @@ class TweeterTask(AsyncComponent):
                         )
                         tweet.tweet_id = tweet_id
                         tweet.status = TweetStatusEnum.success
-                        tweet.posted_at = datetime.datetime.now(tz=datetime.UTC)
                     else:
                         logger.info("Tweeting is disabled")
                         tweet.status = TweetStatusEnum.skipped
-                        tweet.posted_at = datetime.datetime.now(tz=datetime.UTC)
 
                 except tweepy.errors.HTTPException as e:
                     tweet.status = TweetStatusEnum.failed
@@ -133,6 +132,7 @@ class TweeterTask(AsyncComponent):
                 sa_exp.select(sa_func.count())
                 .select_from(m.Tweet)
                 .where(
+                    m.Tweet.status != TweetStatusEnum.skipped,
                     m.Tweet.posted_at > now - datetime.timedelta(hours=24),
                 )
             )
