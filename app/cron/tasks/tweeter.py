@@ -124,7 +124,6 @@ class TweeterTask(AsyncComponent):
                 sa_exp.select(sa_func.count())
                 .select_from(m.Tweet)
                 .where(
-                    m.Tweet.status == TweetStatusEnum.success,
                     m.Tweet.posted_at > now - datetime.timedelta(hours=24),
                 )
             )
