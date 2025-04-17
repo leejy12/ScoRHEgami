@@ -108,6 +108,15 @@ class TweeterTask(AsyncComponent):
                         tweet.game_id,
                         tweet.tweet_failed_reason,
                     )
+                except Exception as e:
+                    tweet.status = TweetStatusEnum.failed
+                    tweet.tweet_failed_reason = str(e)
+
+                    logger.exception(
+                        "Failed to post tweet for game %d, reason = %s",
+                        tweet.game_id,
+                        tweet.tweet_failed_reason,
+                    )
 
                 await AppCtx.current.db.session.commit()
 
