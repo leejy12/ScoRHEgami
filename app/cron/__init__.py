@@ -7,6 +7,8 @@ import sys
 import threading
 from types import FrameType
 
+import sentry_sdk
+
 from app.common.ctx import create_app_ctx
 from app.common.settings import AppSettings
 from app.cron.tasks import TASK_CLS_LIST
@@ -24,6 +26,11 @@ logger = logging.getLogger(__name__)
 class CronApp:
     def __init__(self, app_settings: AppSettings) -> None:
         self.app_settings = app_settings
+
+        sentry_sdk.init(
+            dsn=app_settings.SENTRY_DSN,
+            send_default_pii=True,
+        )
 
         self._terminate_event = threading.Event()
 

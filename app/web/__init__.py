@@ -4,6 +4,8 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 
+import sentry_sdk
+
 from app.common.ctx import bind_app_ctx, create_app_ctx
 from app.common.settings import AppSettings
 
@@ -15,6 +17,11 @@ async def lifespan(app: FastAPI):
     app_settings = AppSettings()
 
     app.extra["_app_ctx"] = await create_app_ctx(app_settings)
+
+    sentry_sdk.init(
+        dsn=app_settings.SENTRY_DSN,
+        send_default_pii=True,
+    )
 
     yield
 

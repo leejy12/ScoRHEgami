@@ -48,3 +48,8 @@ class AppSettings(BaseSettings):
         default=False,
         description="Option to disable posting to X",
     )
+
+    SENTRY_DSN: str = Field(
+        default="",
+        description="Sentry DSN URL",
+    )
