@@ -8,6 +8,7 @@ import threading
 from types import FrameType
 
 import sentry_sdk
+from sentry_sdk.integrations.logging import LoggingIntegration
 
 from app.common.ctx import create_app_ctx
 from app.common.settings import AppSettings
@@ -27,9 +28,15 @@ class CronApp:
     def __init__(self, app_settings: AppSettings) -> None:
         self.app_settings = app_settings
 
+        sentry_logging = LoggingIntegration(
+            level=logging.INFO,  # Capture info and above as breadcrumbs
+            event_level=logging.ERROR,  # Send errors as events
+        )
+
         sentry_sdk.init(
             dsn=app_settings.SENTRY_DSN,
-            send_default_pii=True,
+            integrations=[sentry_logging],
+            traces_sample_rate=1.0,
         )
 
         self._terminate_event = threading.Event()
