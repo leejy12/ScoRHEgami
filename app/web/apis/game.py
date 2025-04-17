@@ -14,11 +14,6 @@ from app.common.models.app import TeamModel
 router = APIRouter(prefix="/game", tags=["game"])
 
 
-@router.get("/error")
-async def _() -> None:
-    1 / 0
-
-
 class GameCountRequest(BaseModel):
     is_scorhegami: bool | None = None
 
