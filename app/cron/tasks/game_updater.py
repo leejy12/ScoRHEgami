@@ -102,8 +102,17 @@ class GameUpdaterTask(AsyncComponent):
                             )
                         )
                         continue
+                    elif isinstance(result, BallDontLieException):
+                        logger.error(
+                            f"Failed to get game result (id = {game.id}, balldontlie_id = {game.balldontlie_id}): "
+                            f"message={result}, status_code={result.status_code}, response={result.response_data}"
+                        )
+                        continue
                     elif isinstance(result, Exception):
-                        logger.error("Failed to get result of game id %d", game.id)
+                        logger.error(
+                            "Unexpected excepion while getting result of game id %d",
+                            game.id,
+                        )
                         continue
 
                     box_score, rhe = self._get_boxscore_and_rhe(result)
@@ -140,14 +149,7 @@ class GameUpdaterTask(AsyncComponent):
     def _get_game_result(
         self, balldontlie_game_id: int, api: BalldontlieAPI
     ) -> MLBGame:
-        try:
-            return api.mlb.games.get(balldontlie_game_id).data
-        except BallDontLieException as e:
-            logger.error(
-                f"Failed to get game result (balldontlie_id = {balldontlie_game_id}): "
-                f"message={e}, status_code={e.status_code}, response={e.response_data}"
-            )
-            raise
+        return api.mlb.games.get(balldontlie_game_id).data
 
     def _get_boxscore_and_rhe(self, result: MLBGame) -> tuple[list[int], list[int]]:
         away_team_scores = result.away_team_data.inning_scores
