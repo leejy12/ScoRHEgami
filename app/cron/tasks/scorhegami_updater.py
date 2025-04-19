@@ -7,7 +7,7 @@ from sqlalchemy.sql import expression as sa_exp
 
 from app.common.ctx import AppCtx, bind_app_ctx
 from app.common.models import orm as m
-from app.common.models.app import TweetStatusEnum
+from app.common.models.app import GameStatusEnum, TweetStatusEnum
 from app.common.utils import sqla as sqla_utils
 
 from .base import AsyncComponent
@@ -65,7 +65,7 @@ class ScorhegamiUpdaterTask(AsyncComponent):
                                 sa_orm.joinedload(m.Game.home_team),
                             )
                             .where(
-                                m.Game.status == "STATUS_FINAL",
+                                m.Game.status == GameStatusEnum.status_final,
                                 m.Game.is_scorhegami.is_(None),
                             )
                             .order_by(m.Game.end_time.asc())

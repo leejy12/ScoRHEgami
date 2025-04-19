@@ -13,6 +13,7 @@ from sqlalchemy.sql import expression as sa_exp
 
 from app.common.ctx import AppCtx, bind_app_ctx
 from app.common.models import orm as m
+from app.common.models.app import GameStatusEnum
 from app.common.utils import sqla as sqla_utils
 
 from .base import AsyncComponent
@@ -68,8 +69,8 @@ class GameUpdaterTask(AsyncComponent):
                     (
                         await AppCtx.current.db.session.execute(
                             sa_exp.select(m.Game).where(
-                                m.Game.status != "STATUS_FINAL",
-                                m.Game.status != "STATUS_POSTPONED",
+                                m.Game.status != GameStatusEnum.status_final,
+                                m.Game.status != GameStatusEnum.status_postponed,
                             )
                         )
                     )
@@ -120,7 +121,9 @@ class GameUpdaterTask(AsyncComponent):
                         sa_exp.update(m.Game)
                         .values(
                             start_time=dateutil.parser.parse(result.date),
-                            end_time=now if result.status == "STATUS_FINAL" else None,
+                            end_time=now
+                            if result.status == GameStatusEnum.status_final
+                            else None,
                             status=result.status,
                             box_score=box_score,
                             rhe=rhe,

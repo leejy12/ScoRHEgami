@@ -9,7 +9,7 @@ from sqlalchemy.sql import expression as sa_exp
 
 from app.common.ctx import AppCtx
 from app.common.models import orm as m
-from app.common.models.app import TeamModel
+from app.common.models.app import GameStatusEnum, TeamModel
 
 router = APIRouter(prefix="/game", tags=["game"])
 
@@ -52,6 +52,7 @@ class GameGetResponse(BaseModel):
     home_team: TeamModel
     start_time: datetime.datetime | None
     end_time: datetime.datetime | None
+    status: GameStatusEnum
     box_score: list[int] | None
     rhe: list[int] | None
     is_scorhegami: bool | None
@@ -103,6 +104,7 @@ async def _(
             ),
             start_time=game.start_time,
             end_time=game.end_time,
+            status=game.status,
             box_score=game.box_score,
             rhe=game.rhe,
             is_scorhegami=game.is_scorhegami,
@@ -145,6 +147,7 @@ async def _(game_id: int) -> GameGetResponse:
         ),
         start_time=game.start_time,
         end_time=game.end_time,
+        status=game.status,
         box_score=game.box_score,
         rhe=game.rhe,
         is_scorhegami=game.is_scorhegami,
