@@ -65,16 +65,16 @@ class GameUpdaterTask(AsyncComponent):
                     logger.error("%s", str(e))
                     return
 
-                ongoing_game_ids = []
-                async with AppCtx.current.db.session.begin():
-                    ongoing_game_ids = (
-                        await AppCtx.current.db.session.execute(
-                            sa_exp.select(m.Game.id, m.Game.balldontlie_id).where(
-                                m.Game.status != GameStatusEnum.status_final,
-                                m.Game.status != GameStatusEnum.status_postponed,
-                            )
+                ongoing_game_ids = (
+                    await AppCtx.current.db.session.execute(
+                        sa_exp.select(m.Game.id, m.Game.balldontlie_id).where(
+                            m.Game.status != GameStatusEnum.status_final,
+                            m.Game.status != GameStatusEnum.status_postponed,
                         )
-                    ).all()
+                    )
+                ).all()
+
+                await AppCtx.current.db.session.close()
 
                 if not ongoing_game_ids:
                     return
@@ -89,46 +89,47 @@ class GameUpdaterTask(AsyncComponent):
 
                 now = datetime.datetime.now(tz=datetime.UTC)
 
-                async with AppCtx.current.db.session.begin():
-                    for (game_id, balldontlie_id), result in zip(
-                        ongoing_game_ids, game_results
-                    ):
-                        if isinstance(result, NotFoundError):
-                            logger.warning(
-                                "Deleting game id %d due to NotFoundError",
-                                game_id,
-                            )
-                            await AppCtx.current.db.session.execute(
-                                sa_exp.delete(m.Game).where(m.Game.id == game_id)
-                            )
-                            continue
-                        elif isinstance(result, BallDontLieException):
-                            logger.error(
-                                f"Failed to get game result (id = {game_id}, balldontlie_id = {balldontlie_id}): "
-                                f"message={result}, status_code={result.status_code}, response={result.response_data}"
-                            )
-                            continue
-                        elif isinstance(result, Exception):
-                            logger.error(
-                                "Unexpected excepion while getting result of game id %d",
-                                game_id,
-                            )
-                            continue
-
-                        box_score, rhe = self._get_boxscore_and_rhe(result)
-                        await AppCtx.current.db.session.execute(
-                            sa_exp.update(m.Game)
-                            .values(
-                                start_time=dateutil.parser.parse(result.date),
-                                end_time=now
-                                if result.status == GameStatusEnum.status_final
-                                else None,
-                                status=result.status,
-                                box_score=box_score,
-                                rhe=rhe,
-                            )
-                            .where(m.Game.balldontlie_id == result.id)
+                for (game_id, balldontlie_id), result in zip(
+                    ongoing_game_ids, game_results
+                ):
+                    if isinstance(result, NotFoundError):
+                        logger.warning(
+                            "Deleting game id %d due to NotFoundError",
+                            game_id,
                         )
+                        await AppCtx.current.db.session.execute(
+                            sa_exp.delete(m.Game).where(m.Game.id == game_id)
+                        )
+                        continue
+                    elif isinstance(result, BallDontLieException):
+                        logger.error(
+                            f"Failed to get game result (id = {game_id}, balldontlie_id = {balldontlie_id}): "
+                            f"message={result}, status_code={result.status_code}, response={result.response_data}"
+                        )
+                        continue
+                    elif isinstance(result, Exception):
+                        logger.error(
+                            "Unexpected excepion while getting result of game id %d",
+                            game_id,
+                        )
+                        continue
+
+                    box_score, rhe = self._get_boxscore_and_rhe(result)
+                    await AppCtx.current.db.session.execute(
+                        sa_exp.update(m.Game)
+                        .values(
+                            start_time=dateutil.parser.parse(result.date),
+                            end_time=now
+                            if result.status == GameStatusEnum.status_final
+                            else None,
+                            status=result.status,
+                            box_score=box_score,
+                            rhe=rhe,
+                        )
+                        .where(m.Game.balldontlie_id == result.id)
+                    )
+
+                await AppCtx.current.db.session.commit()
 
         except Exception:
             logger.exception(f"Failed to run {self.__class__.__name__}")
