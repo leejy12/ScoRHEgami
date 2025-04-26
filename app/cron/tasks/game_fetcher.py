@@ -168,7 +168,7 @@ class GameFetcherTask(AsyncComponent):
             for i in range(num_days)
         ]
 
-    def _get_game_date(date: str) -> datetime.date:
+    def _get_game_date(self, date: str) -> datetime.date:
         # Convert game's start time to US local time by subtracting 7 hours.
         us_local_time = dateutil.parser.parse(date) - datetime.timedelta(hours=7)
         return us_local_time.date()
