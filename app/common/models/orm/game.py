@@ -45,12 +45,12 @@ class Game(OrmBase):
         TIMESTAMP(timezone=True), nullable=True
     )
 
-    box_score: Mapped[list[int]] = Column(ARRAY(Integer), nullable=True)
-    rhe: Mapped[list[int]] = Column(ARRAY(Integer), nullable=True)
-    status: Mapped[str] = Column(String, index=True, nullable=True)
-    is_scorhegami: Mapped[bool] = Column(Boolean, nullable=True)
+    box_score: Mapped[list[int] | None] = Column(ARRAY(Integer), nullable=True)
+    rhe: Mapped[list[int] | None] = Column(ARRAY(Integer), nullable=True)
+    status: Mapped[str | None] = Column(String, index=True, nullable=True)
+    is_scorhegami: Mapped[bool | None] = Column(Boolean, nullable=True)
 
-    bref_url: Mapped[str] = Column(String, nullable=True)
+    bref_url: Mapped[str | None] = Column(String, nullable=True)
 
     __table_args__ = (
         Index(
