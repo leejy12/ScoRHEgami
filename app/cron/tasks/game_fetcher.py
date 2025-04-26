@@ -2,8 +2,10 @@ import asyncio
 import datetime
 import logging
 
+import dateutil
 from balldontlie.exceptions import BallDontLieException
 from balldontlie.mlb.models import MLBGame
+import dateutil.parser
 from sqlalchemy.dialects import postgresql as pg_dialect
 from sqlalchemy.sql import expression as sa_exp
 
@@ -104,13 +106,14 @@ class GameFetcherTask(AsyncComponent):
                                 "balldontlie_id": game.id,
                                 "away_id": await self._get_team_id(game.away_team.id),
                                 "home_id": await self._get_team_id(game.home_team.id),
-                                "start_time": None,
+                                "start_time": dateutil.parser.parse(game.date),
                                 "end_time": None,
                                 "box_score": None,
                                 "rhe": None,
                                 "status": game.status,
                                 "is_scorhegami": None,
                                 "bref_url": None,
+                                "game_date": self._get_game_date(game.date),
                             }
                             for game in games
                         ]
@@ -164,6 +167,11 @@ class GameFetcherTask(AsyncComponent):
             (start_date + datetime.timedelta(days=i)).strftime("%Y-%m-%d")
             for i in range(num_days)
         ]
+
+    def _get_game_date(date: str) -> datetime.date:
+        # Convert game's start time to US local time by subtracting 7 hours.
+        us_local_time = dateutil.parser.parse(date) - datetime.timedelta(hours=7)
+        return us_local_time.date()
 
     def is_healthy(self) -> bool:
         if not (

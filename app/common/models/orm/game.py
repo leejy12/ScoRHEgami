@@ -2,6 +2,7 @@ import datetime
 
 from sqlalchemy import (
     ARRAY,
+    DATE,
     TIMESTAMP,
     Boolean,
     CheckConstraint,
@@ -51,6 +52,8 @@ class Game(OrmBase):
     is_scorhegami: Mapped[bool | None] = Column(Boolean, nullable=True)
 
     bref_url: Mapped[str | None] = Column(String, nullable=True)
+
+    game_date: Mapped[datetime.date] = Column(DATE, nullable=False)
 
     __table_args__ = (
         Index(
