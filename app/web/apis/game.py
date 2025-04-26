@@ -43,6 +43,7 @@ async def _(
 class GameGetRequest(BaseModel):
     offset: int
     count: int = Field(ge=1, le=50)
+    filter_date: datetime.date | None = None
 
 
 class GameGetResponse(BaseModel):
@@ -57,6 +58,7 @@ class GameGetResponse(BaseModel):
     rhe: list[int] | None
     is_scorhegami: bool | None
     bref_url: str | None
+    date: datetime.date
 
 
 @router.get("")
@@ -75,6 +77,9 @@ async def _(
 
     if rhe is not None:
         games_query = games_query.where(m.Game.rhe == rhe)
+
+    if q.filter_date is not None:
+        games_query = games_query.where(m.Game.game_date == q.filter_date)
 
     games = (
         (
@@ -109,6 +114,7 @@ async def _(
             rhe=game.rhe,
             is_scorhegami=game.is_scorhegami,
             bref_url=game.bref_url,
+            date=game.game_date,
         )
         for game in games
     ]
@@ -152,4 +158,5 @@ async def _(game_id: int) -> GameGetResponse:
         rhe=game.rhe,
         is_scorhegami=game.is_scorhegami,
         bref_url=game.bref_url,
+        date=game.game_date,
     )
