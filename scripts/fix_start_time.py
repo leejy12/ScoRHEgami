@@ -1,10 +1,11 @@
-import datetime
 import asyncio
+import datetime
 
+from dateutil import parser
 from sqlalchemy.sql import expression as sa_exp
 
-from app.common.models import orm as m
 from app.common.ctx import AppCtx, bind_app_ctx, create_app_ctx
+from app.common.models import orm as m
 from app.common.settings import AppSettings
 
 
@@ -24,15 +25,15 @@ async def do_migration():
     for i, (game_id, balldontlie_id, start_time) in enumerate(results):
         game = AppCtx.current.balldontlie_api.mlb.games.get(balldontlie_id)
 
+        date = parser.parse(game.data.date)
+
         await AppCtx.current.db.session.execute(
-            sa_exp.update(m.Game)
-            .values(start_time=game.data.date)
-            .where(m.Game.id == game_id)
+            sa_exp.update(m.Game).values(start_time=date).where(m.Game.id == game_id)
         )
         await AppCtx.current.db.session.commit()
 
         print(
-            f"[{i:03}] Update game (id={game_id}, balldontlie_id={balldontlie_id}): FROM={start_time}, TO={game.data.date}",
+            f"[{i:03}] Update game (id={game_id}, balldontlie_id={balldontlie_id}): FROM={start_time}, TO={date}",
         )
 
         await asyncio.sleep(3)
