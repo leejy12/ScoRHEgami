@@ -14,6 +14,40 @@ from app.common.models.app import GameStatusEnum, TeamModel
 router = APIRouter(prefix="/game", tags=["game"])
 
 
+@router.get("/latest_completed_date")
+async def _() -> datetime.date:
+    """
+    Returns the most recent date when all games on that date have completed or were postponed.
+    In other words, the most recent date with no games in STATUS_SCHEDULED or STATUS_IN_PROGRESS.
+    """
+
+    dates_with_pending_games = (
+        (
+            await AppCtx.current.db.session.execute(
+                sa_exp.select(m.Game.game_date)
+                .where(
+                    (m.Game.status == GameStatusEnum.status_scheduled)
+                    | (m.Game.status == GameStatusEnum.status_in_progress)
+                )
+                .distinct()
+            )
+        )
+        .scalars()
+        .all()
+    )
+
+    most_recent_completed_date = (
+        await AppCtx.current.db.session.execute(
+            sa_exp.select(m.Game.game_date)
+            .where(m.Game.game_date.notin_(dates_with_pending_games))
+            .order_by(m.Game.game_date.desc())
+            .limit(1)
+        )
+    ).scalar_one()
+
+    return most_recent_completed_date
+
+
 class GameCountRequest(BaseModel):
     is_scorhegami: bool | None = None
 
