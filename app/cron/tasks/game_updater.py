@@ -56,14 +56,6 @@ class GameUpdaterTask(AsyncComponent):
     async def _run_internal(self) -> None:
         try:
             async with bind_app_ctx(self.app_ctx):
-                try:
-                    await sqla_utils.obtain_advisory_lock(
-                        sqla_utils.AdvisoryLockGameUpdaterTask(),
-                        nowait=True,
-                    )
-                except Exception as e:
-                    logger.error("%s", str(e))
-                    return
 
                 ongoing_game_ids = (
                     await AppCtx.current.db.session.execute(
