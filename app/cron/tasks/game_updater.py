@@ -14,7 +14,6 @@ from sqlalchemy.sql import expression as sa_exp
 from app.common.ctx import AppCtx, bind_app_ctx
 from app.common.models import orm as m
 from app.common.models.app import GameStatusEnum
-from app.common.utils import sqla as sqla_utils
 
 from .base import AsyncComponent
 
@@ -56,7 +55,6 @@ class GameUpdaterTask(AsyncComponent):
     async def _run_internal(self) -> None:
         try:
             async with bind_app_ctx(self.app_ctx):
-
                 ongoing_game_ids = (
                     await AppCtx.current.db.session.execute(
                         sa_exp.select(m.Game.id, m.Game.balldontlie_id).where(
