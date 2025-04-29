@@ -85,7 +85,6 @@ async def _(
 class GameGetRequest(BaseModel):
     offset: int
     count: int = Field(ge=1, le=50)
-    filter_date: datetime.date | None = None
 
 
 class GameGetResponse(BaseModel):
@@ -108,6 +107,7 @@ async def _(
     q: GameGetRequest = Depends(),
     rhe: list[int] | None = Query(None),
     filter_statuses: list[GameStatusEnum] | None = Query(None),
+    filter_dates: list[datetime.date] | None = Query(None),
 ) -> list[GameGetResponse]:
     if rhe is not None:
         if len(rhe) != 6:
@@ -121,11 +121,11 @@ async def _(
     if rhe is not None:
         games_query = games_query.where(m.Game.rhe == rhe)
 
-    if q.filter_date is not None:
-        games_query = games_query.where(m.Game.game_date == q.filter_date)
-
     if filter_statuses is not None:
         games_query = games_query.where(m.Game.status.in_(filter_statuses))
+
+    if filter_statuses is not None:
+        games_query = games_query.where(m.Game.game_date.in_(filter_dates))
 
     games = (
         (
