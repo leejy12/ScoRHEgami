@@ -72,10 +72,10 @@ async def _(
         count_query = count_query.where(m.Game.is_scorhegami.is_(q.is_scorhegami))
 
     if filter_dates is not None:
-        count_query = count_query.where(m.Game.is_scorhegami.in_(filter_dates))
+        count_query = count_query.where(m.Game.game_date.in_(filter_dates))
 
     if filter_statuses is not None:
-        count_query = count_query.where(m.Game.is_scorhegami.in_(filter_statuses))
+        count_query = count_query.where(m.Game.status.in_(filter_statuses))
 
     count = (await AppCtx.current.db.session.execute(count_query)).scalar() or 0
 
