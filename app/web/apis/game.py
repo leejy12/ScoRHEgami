@@ -56,6 +56,8 @@ class GameCountRequest(BaseModel):
 async def _(
     q: GameCountRequest = Depends(),
     rhe: list[int] | None = Query(None),
+    filter_dates: list[datetime.date] | None = Query(None),
+    filter_statuses: list[GameStatusEnum] | None = Query(None),
 ) -> int:
     if rhe is not None:
         if len(rhe) != 6:
@@ -68,6 +70,12 @@ async def _(
 
     if q.is_scorhegami is not None:
         count_query = count_query.where(m.Game.is_scorhegami.is_(q.is_scorhegami))
+
+    if filter_dates is not None:
+        count_query = count_query.where(m.Game.is_scorhegami.in_(filter_dates))
+
+    if filter_statuses is not None:
+        count_query = count_query.where(m.Game.is_scorhegami.in_(filter_statuses))
 
     count = (await AppCtx.current.db.session.execute(count_query)).scalar() or 0
 
