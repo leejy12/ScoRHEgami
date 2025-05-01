@@ -85,6 +85,7 @@ async def _(
 class GameGetRequest(BaseModel):
     offset: int
     count: int = Field(ge=1, le=50)
+    is_scorhegami: bool | None = None
 
 
 class GameGetResponse(BaseModel):
@@ -126,6 +127,9 @@ async def _(
 
     if filter_statuses is not None:
         games_query = games_query.where(m.Game.status.in_(filter_statuses))
+
+    if q.is_scorhegami is not None:
+        games_query = games_query.where(m.Game.is_scorhegami.is_(q.is_scorhegami))
 
     games = (
         (
