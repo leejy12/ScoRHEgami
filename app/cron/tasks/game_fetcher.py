@@ -12,7 +12,6 @@ from sqlalchemy.sql import expression as sa_exp
 from app.common.ctx import AppCtx, bind_app_ctx
 from app.common.models import orm as m
 from app.common.models.app import CronTaskEnum
-from app.common.utils import sqla as sqla_utils
 
 from .base import AsyncComponent
 
@@ -51,14 +50,6 @@ class GameFetcherTask(AsyncComponent):
     async def _run_internal(self) -> None:
         try:
             async with bind_app_ctx(self.app_ctx):
-                try:
-                    await sqla_utils.obtain_advisory_lock(
-                        sqla_utils.AdvisoryLockGameFetcherTask(),
-                        nowait=True,
-                    )
-                except Exception:
-                    return
-
                 now = datetime.datetime.now(tz=datetime.UTC)
 
                 cursor = (

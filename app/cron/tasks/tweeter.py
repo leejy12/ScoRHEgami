@@ -10,7 +10,6 @@ from sqlalchemy.sql import expression as sa_exp
 from app.common.ctx import AppCtx, bind_app_ctx
 from app.common.models import orm as m
 from app.common.models.app import TweetStatusEnum
-from app.common.utils import sqla as sqla_utils
 
 from .base import AsyncComponent
 
@@ -53,15 +52,6 @@ class TweeterTask(AsyncComponent):
     async def _run_internal(self) -> None:
         try:
             async with bind_app_ctx(self.app_ctx):
-                try:
-                    await sqla_utils.obtain_advisory_lock(
-                        sqla_utils.AdvisoryLockTweeterTask(),
-                        nowait=True,
-                    )
-                except Exception as e:
-                    logger.error("%s", str(e))
-                    return
-
                 if not (await self._under_rate_limit()):
                     return
 
