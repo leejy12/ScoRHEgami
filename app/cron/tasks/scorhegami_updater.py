@@ -129,9 +129,18 @@ class ScorhegamiUpdaterTask(AsyncComponent):
             ).scalar_one()
             content += f"It's the {self._get_ordinal_string(num_scorhegamis)} unique RHE score in history."
         else:
+            last_date = (
+                await AppCtx.current.db.session.execute(
+                    sa_exp.select(m.Game.game_date)
+                    .where(m.Game.rhe == rhe)
+                    .order_by(m.Game.game_date.desc())
+                    .limit(1)
+                )
+            ).scalar_one()
+
             content += f"\nNot a ScoRHEgami. That score has happened {rhe_cnt - 1} "
-            content += ("time" if rhe_cnt == 2 else "times") + " before."
-            # TODO: Return the most recent game with that RHE.
+            content += "time" if rhe_cnt == 2 else "times"
+            content += f" before, most recently on {last_date.strftime('%B %-d, %Y')}."
 
         return content
 
