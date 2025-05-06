@@ -134,6 +134,7 @@ class ScorhegamiUpdaterTask(AsyncComponent):
                     sa_exp.select(m.Game.game_date)
                     .where(m.Game.rhe == rhe)
                     .order_by(m.Game.game_date.desc())
+                    .offset(1)
                     .limit(1)
                 )
             ).scalar_one()
