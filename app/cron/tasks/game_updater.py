@@ -71,11 +71,18 @@ class GameUpdaterTask(AsyncComponent):
 
                 logger.info("Updating %d games", len(ongoing_game_ids))
 
-                # Pass the API client object to be shared among threads.
-                game_results = await self._fetch_all_game_results(
-                    [balldontlie_id for _, balldontlie_id in ongoing_game_ids],
-                    AppCtx.current.balldontlie_api,
-                )
+                try:
+                    # Pass the API client object to be shared among threads.
+                    game_results = await asyncio.wait_for(
+                        self._fetch_all_game_results(
+                            [balldontlie_id for _, balldontlie_id in ongoing_game_ids],
+                            AppCtx.current.balldontlie_api,
+                        ),
+                        timeout=60,
+                    )
+                except TimeoutError:
+                    logger.exception("Timeout error when updating games")
+                    return
 
                 now = datetime.datetime.now(tz=datetime.UTC)
 
