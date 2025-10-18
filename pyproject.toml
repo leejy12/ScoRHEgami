@@ -10,7 +10,7 @@ dependencies = [
     "lxml==6.0.2",
     "psycopg[binary]==3.2.10",
     "sqlalchemy[asyncio]==2.0.44",
-    "pydantic-settings==2.7.1",
+    "pydantic-settings==2.11.0",
     "alembic==1.14.1",
     "asyncpg==0.30.0",
     "httpx==0.28.1",
