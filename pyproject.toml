@@ -14,7 +14,7 @@ dependencies = [
     "alembic==1.14.1",
     "asyncpg==0.30.0",
     "httpx==0.28.1",
-    "fastapi[standard]==0.115.11",
+    "fastapi[standard]==0.119.0",
     "balldontlie==0.1.6",
     "python-dateutil==2.9.0",
     "tweepy[async]==4.15.0",
