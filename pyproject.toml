@@ -15,7 +15,6 @@ dependencies = [
     "asyncpg==0.30.0",
     "httpx==0.28.1",
     "fastapi[standard]==0.119.0",
-    "balldontlie==0.1.6",
     "python-dateutil==2.9.0",
     "tweepy[async]==4.16.0",
     "sentry-sdk[fastapi]==2.26.1",
