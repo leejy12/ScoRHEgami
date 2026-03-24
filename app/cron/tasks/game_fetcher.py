@@ -124,7 +124,9 @@ class GameFetcherTask(AsyncComponent):
 
         while True:
             list_resp = AppCtx.current.balldontlie_api.mlb.games.list(
-                cursor=next_cursor, dates=dates
+                cursor=next_cursor,
+                dates=dates,
+                season_type="regular",  # https://github.com/balldontlie-api/python/issues/5
             )
             game_list.extend(list_resp.data)
             next_cursor = list_resp.meta.next_cursor
