@@ -87,6 +87,7 @@ class GameFetcherTask(AsyncComponent):
                 logger.info("Fetched %d games", len(games))
 
                 if not games:
+                    await AppCtx.current.db.session.commit()
                     return
 
                 result = await AppCtx.current.db.session.execute(
