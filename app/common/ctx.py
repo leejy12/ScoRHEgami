@@ -9,8 +9,8 @@ from typing import TYPE_CHECKING, AsyncIterator
 
 import tweepy
 import tweepy.asynchronous.client
-from balldontlie import BalldontlieAPI
 
+from app.common.api_clients.balldontlie import BalldontlieAPI
 from app.common.settings import AppSettings
 
 if TYPE_CHECKING:
@@ -47,7 +47,10 @@ async def create_app_ctx(app_settings: AppSettings) -> AppCtx:
         ctx_id=str(uuid.uuid4()),
         settings=app_settings,
         db=SqlaEngineAndSession(app_settings.DB_URI, app_settings.DB_OPTIONS),
-        balldontlie_api=BalldontlieAPI(api_key=str(app_settings.BALLDONTLIE_API_KEY)),
+        balldontlie_api=BalldontlieAPI(
+            url="https://api.balldontlie.io",
+            api_key=str(app_settings.BALLDONTLIE_API_KEY),
+        ),
         x_api=tweepy.asynchronous.client.AsyncClient(
             consumer_key=app_settings.X_API_KEY,
             consumer_secret=app_settings.X_API_SECRET,
