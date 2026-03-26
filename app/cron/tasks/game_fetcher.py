@@ -1,14 +1,16 @@
 import asyncio
 import datetime
 import logging
+from typing import Any, cast
 
 import dateutil
-from balldontlie.exceptions import BallDontLieException
-from balldontlie.mlb.models import MLBGame
 import dateutil.parser
+import httpx
 from sqlalchemy.dialects import postgresql as pg_dialect
+from sqlalchemy.engine import CursorResult
 from sqlalchemy.sql import expression as sa_exp
 
+from app.common.api_clients.balldontlie import MLBGame
 from app.common.ctx import AppCtx, bind_app_ctx
 from app.common.models import orm as m
 from app.common.models.app import CronTaskEnum
@@ -76,11 +78,11 @@ class GameFetcherTask(AsyncComponent):
                 logger.info("Fetching games for dates = %s", dates)
 
                 try:
-                    games = self._get_games_for_dates(dates)
-                except BallDontLieException as e:
+                    games = await self._get_games_for_dates(dates)
+                except httpx.HTTPStatusError as e:
                     logger.error(
                         f"Failed to fetch games (dates = {dates}): "
-                        f"message={e}, status_code={e.status_code}, response={e.response_data}"
+                        f"message={e}, status_code={e.response.status_code}, response={e.response.content}"
                     )
                     return
 
@@ -112,22 +114,25 @@ class GameFetcherTask(AsyncComponent):
                     )
                     .on_conflict_do_nothing(index_elements=[m.Game.balldontlie_id])
                 )
-                logger.info("Inserted %d new games", result.rowcount)
+                logger.info(
+                    "Inserted %d new games",
+                    cast(CursorResult[Any], result).rowcount,
+                )
 
                 await AppCtx.current.db.session.commit()
 
         except Exception:
             logger.exception(f"Failed to run {self.__class__.__name__}")
 
-    def _get_games_for_dates(self, dates: list[str]) -> list[MLBGame]:
+    async def _get_games_for_dates(self, dates: list[str]) -> list[MLBGame]:
         game_list = []
         next_cursor = None
 
         while True:
-            list_resp = AppCtx.current.balldontlie_api.mlb.games.list(
+            list_resp = await AppCtx.current.balldontlie_api.get_mlb_games(
                 cursor=next_cursor,
                 dates=dates,
-                season_type="regular",  # https://github.com/balldontlie-api/python/issues/5
+                season_type="regular",
             )
             game_list.extend(list_resp.data)
             next_cursor = list_resp.meta.next_cursor

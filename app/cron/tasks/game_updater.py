@@ -1,16 +1,13 @@
 import asyncio
 import datetime
 import logging
-from concurrent.futures import ThreadPoolExecutor
-from functools import partial
 
 import dateutil
 import dateutil.parser
-from balldontlie import BalldontlieAPI
-from balldontlie.exceptions import BallDontLieException, NotFoundError
-from balldontlie.mlb.models import MLBGame
+import httpx
 from sqlalchemy.sql import expression as sa_exp
 
+from app.common.api_clients.balldontlie import BalldontlieAPI, MLBGame
 from app.common.ctx import AppCtx, bind_app_ctx
 from app.common.models import orm as m
 from app.common.models.app import GameStatusEnum
@@ -25,7 +22,6 @@ class GameUpdaterTask(AsyncComponent):
         self.app_ctx = app_ctx
 
         self._game_updater_task: asyncio.Task | None = None
-        self.pool = ThreadPoolExecutor(max_workers=4)
 
     async def start(self) -> None:
         self._game_updater_task = asyncio.create_task(self._run())
@@ -43,8 +39,6 @@ class GameUpdaterTask(AsyncComponent):
                     self.__class__.__name__,
                     exc_info=True,
                 )
-            finally:
-                self.pool.shutdown(wait=False)
 
     async def _run(self) -> None:
         while True:
@@ -72,7 +66,6 @@ class GameUpdaterTask(AsyncComponent):
                 logger.info("Updating %d games", len(ongoing_game_ids))
 
                 try:
-                    # Pass the API client object to be shared among threads.
                     game_results = await asyncio.wait_for(
                         self._fetch_all_game_results(
                             [balldontlie_id for _, balldontlie_id in ongoing_game_ids],
@@ -89,24 +82,25 @@ class GameUpdaterTask(AsyncComponent):
                 for (game_id, balldontlie_id), result in zip(
                     ongoing_game_ids, game_results
                 ):
-                    if isinstance(result, NotFoundError):
-                        logger.warning(
-                            "Deleting game id %d due to NotFoundError",
-                            game_id,
-                        )
-                        await AppCtx.current.db.session.execute(
-                            sa_exp.delete(m.Game).where(m.Game.id == game_id)
-                        )
-                        continue
-                    elif isinstance(result, BallDontLieException):
-                        logger.error(
-                            f"Failed to get game result (id = {game_id}, balldontlie_id = {balldontlie_id}): "
-                            f"message={result}, status_code={result.status_code}, response={result.response_data}"
-                        )
-                        continue
+                    if isinstance(result, httpx.HTTPStatusError):
+                        if result.response.status_code == 404:
+                            logger.warning(
+                                "Deleting game id %d due to NotFoundError",
+                                game_id,
+                            )
+                            await AppCtx.current.db.session.execute(
+                                sa_exp.delete(m.Game).where(m.Game.id == game_id)
+                            )
+                            continue
+                        else:
+                            logger.error(
+                                f"Failed to get game result (id = {game_id}, balldontlie_id = {balldontlie_id}): "
+                                f"message={result}, status_code={result.response.status_code}, response={result.response}"
+                            )
+                            continue
                     elif isinstance(result, Exception):
                         logger.error(
-                            "Unexpected excepion while getting result of game id %d",
+                            "Unexpected exception while getting result of game id %d",
                             game_id,
                         )
                         continue
@@ -136,18 +130,15 @@ class GameUpdaterTask(AsyncComponent):
     ) -> list[MLBGame | Exception]:
         coroutines = [self._fetch_game_result(game_id, api) for game_id in game_ids]
 
-        return await asyncio.gather(*coroutines, return_exceptions=True)
+        return await asyncio.gather(*coroutines)
 
-    async def _fetch_game_result(self, game_id: int, api: BalldontlieAPI) -> MLBGame:
-        loop = asyncio.get_running_loop()
-
-        fn = partial(self._get_game_result, game_id, api)
-        return await loop.run_in_executor(self.pool, fn)
-
-    def _get_game_result(
-        self, balldontlie_game_id: int, api: BalldontlieAPI
-    ) -> MLBGame:
-        return api.mlb.games.get(balldontlie_game_id).data
+    async def _fetch_game_result(
+        self, game_id: int, api: BalldontlieAPI
+    ) -> MLBGame | Exception:
+        try:
+            return (await api.get_mlb_game(game_id)).data
+        except Exception as e:
+            return e
 
     def _get_boxscore_and_rhe(self, result: MLBGame) -> tuple[list[int], list[int]]:
         away_team_scores = result.away_team_data.inning_scores
