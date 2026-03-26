@@ -36,10 +36,10 @@ class MLBTeam(BaseModel):
 
 
 class MLBGameTeamData(BaseModel):
-    hits: int | None = None
-    runs: int | None = None
-    errors: int | None = None
-    inning_scores: list[int] | None = None
+    hits: int
+    runs: int
+    errors: int
+    inning_scores: list[int]
 
 
 class MLBGameScoringSummary(BaseModel):
@@ -60,8 +60,8 @@ class MLBGame(BaseModel):
     postseason: bool
     season_type: str | None = None
     date: str
-    home_team_data: MLBGameTeamData | None = None
-    away_team_data: MLBGameTeamData | None = None
+    home_team_data: MLBGameTeamData
+    away_team_data: MLBGameTeamData
     venue: str | None = None
     attendance: int | None = None
     conference_play: bool | None = None
