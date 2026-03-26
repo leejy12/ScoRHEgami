@@ -16,6 +16,9 @@ from .base import AsyncComponent
 
 logger = logging.getLogger(__name__)
 
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
+
 
 class GameUpdaterTask(AsyncComponent):
     def __init__(self, app_ctx: AppCtx) -> None:
