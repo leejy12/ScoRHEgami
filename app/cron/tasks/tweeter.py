@@ -4,7 +4,6 @@ import logging
 
 import tweepy
 import tweepy.errors
-from sqlalchemy import func as sa_func
 from sqlalchemy.sql import expression as sa_exp
 
 from app.common.ctx import AppCtx, bind_app_ctx
@@ -12,9 +11,6 @@ from app.common.models import orm as m
 from app.common.models.app import TweetStatusEnum
 
 from .base import AsyncComponent
-
-# X API Free tier limits tweet posting to 17 tweets per 24-hour period.
-_MAX_TWEETS_PER_DAY = 17
 
 
 logger = logging.getLogger(__name__)
@@ -52,9 +48,6 @@ class TweeterTask(AsyncComponent):
     async def _run_internal(self) -> None:
         try:
             async with bind_app_ctx(self.app_ctx):
-                if not (await self._under_rate_limit()):
-                    return
-
                 tweet = (
                     await AppCtx.current.db.session.execute(
                         sa_exp.select(m.Tweet)
@@ -111,24 +104,6 @@ class TweeterTask(AsyncComponent):
 
         except Exception:
             logger.exception(f"Failed to run {self.__class__.__name__}")
-
-    async def _under_rate_limit(self) -> bool:
-        if self.app_ctx.settings.DISABLE_TWEETS:
-            return True
-
-        now = datetime.datetime.now(tz=datetime.UTC)
-        tweet_cnt = (
-            await AppCtx.current.db.session.execute(
-                sa_exp.select(sa_func.count())
-                .select_from(m.Tweet)
-                .where(
-                    m.Tweet.status != TweetStatusEnum.skipped,
-                    m.Tweet.posted_at > now - datetime.timedelta(hours=24),
-                )
-            )
-        ).scalar() or 0
-
-        return tweet_cnt < _MAX_TWEETS_PER_DAY
 
     def is_healthy(self) -> bool:
         if not (self._tweeter_task is not None and not self._tweeter_task.done()):
