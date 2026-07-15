@@ -110,6 +110,8 @@ class GameFetcherTask(AsyncComponent):
                                 "game_date": self._get_game_date(game.date),
                             }
                             for game in games
+                            if -1 not in [game.away_team.id, game.home_team.id]
+                            # The All-Star Game shows teams having id of -1, so just skip these.
                         ]
                     )
                     .on_conflict_do_nothing(index_elements=[m.Game.balldontlie_id])
