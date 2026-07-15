@@ -92,6 +92,21 @@ class GameFetcherTask(AsyncComponent):
                     await AppCtx.current.db.session.commit()
                     return
 
+                valid_games = [
+                    game
+                    for game in games
+                    if game.away_team.id != -1 and game.home_team.id != -1
+                ]
+                skipped_games = len(games) - len(valid_games)
+                if skipped_games:
+                    logger.info(
+                        "Skipped %d games with unknown teams", skipped_games
+                    )
+
+                if not valid_games:
+                    await AppCtx.current.db.session.commit()
+                    return
+
                 result = await AppCtx.current.db.session.execute(
                     pg_dialect.insert(m.Game)
                     .values(
@@ -109,9 +124,7 @@ class GameFetcherTask(AsyncComponent):
                                 "bref_url": None,
                                 "game_date": self._get_game_date(game.date),
                             }
-                            for game in games
-                            if -1 not in [game.away_team.id, game.home_team.id]
-                            # The All-Star Game shows teams having id of -1, so just skip these.
+                            for game in valid_games
                         ]
                     )
                     .on_conflict_do_nothing(index_elements=[m.Game.balldontlie_id])
