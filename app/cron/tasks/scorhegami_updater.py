@@ -160,10 +160,7 @@ class ScorhegamiUpdaterTask(AsyncComponent):
                 return f"{n}th"
 
     def is_healthy(self) -> bool:
-        if not (
+        return (
             self._scorhegami_updater_task is not None
             and not self._scorhegami_updater_task.done()
-        ):
-            return False
-
-        return True
+        )

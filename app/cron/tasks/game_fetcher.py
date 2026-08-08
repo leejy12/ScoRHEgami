@@ -99,9 +99,7 @@ class GameFetcherTask(AsyncComponent):
                 ]
                 skipped_games = len(games) - len(valid_games)
                 if skipped_games:
-                    logger.info(
-                        "Skipped %d games with unknown teams", skipped_games
-                    )
+                    logger.info("Skipped %d games with unknown teams", skipped_games)
 
                 if not valid_games:
                     await AppCtx.current.db.session.commit()
@@ -188,9 +186,6 @@ class GameFetcherTask(AsyncComponent):
         return us_local_time.date()
 
     def is_healthy(self) -> bool:
-        if not (
+        return (
             self._game_fetcher_task is not None and not self._game_fetcher_task.done()
-        ):
-            return False
-
-        return True
+        )

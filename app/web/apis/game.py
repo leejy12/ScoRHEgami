@@ -59,9 +59,8 @@ async def _(
     filter_dates: list[datetime.date] | None = Query(None),
     filter_statuses: list[GameStatusEnum] | None = Query(None),
 ) -> int:
-    if rhe is not None:
-        if len(rhe) != 6:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+    if rhe is not None and len(rhe) != 6:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
 
     count_query = sa_exp.select(sa_func.count()).select_from(m.Game)
 
@@ -110,9 +109,8 @@ async def _(
     filter_dates: list[datetime.date] | None = Query(None),
     filter_statuses: list[GameStatusEnum] | None = Query(None),
 ) -> list[GameGetResponse]:
-    if rhe is not None:
-        if len(rhe) != 6:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+    if rhe is not None and len(rhe) != 6:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
 
     games_query = sa_exp.select(m.Game).options(
         sa_orm.joinedload(m.Game.away_team),

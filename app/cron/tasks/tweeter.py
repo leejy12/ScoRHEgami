@@ -105,7 +105,4 @@ class TweeterTask(AsyncComponent):
             logger.exception(f"Failed to run {self.__class__.__name__}")
 
     def is_healthy(self) -> bool:
-        if not (self._tweeter_task is not None and not self._tweeter_task.done()):
-            return False
-
-        return True
+        return self._tweeter_task is not None and not self._tweeter_task.done()
