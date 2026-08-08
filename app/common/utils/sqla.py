@@ -3,7 +3,8 @@ import dataclasses
 import hashlib
 import random
 import time
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from sqlalchemy import func as sa_func
 from sqlalchemy import types as sa_types

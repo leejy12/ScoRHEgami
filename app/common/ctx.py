@@ -5,7 +5,8 @@ import contextvars
 import dataclasses
 import logging
 import uuid
-from typing import TYPE_CHECKING, AsyncIterator
+from collections.abc import AsyncIterator
+from typing import TYPE_CHECKING
 
 import tweepy
 import tweepy.asynchronous.client

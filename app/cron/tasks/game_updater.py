@@ -168,9 +168,6 @@ class GameUpdaterTask(AsyncComponent):
         return (box_score, rhe)
 
     def is_healthy(self) -> bool:
-        if not (
+        return (
             self._game_updater_task is not None and not self._game_updater_task.done()
-        ):
-            return False
-
-        return True
+        )
