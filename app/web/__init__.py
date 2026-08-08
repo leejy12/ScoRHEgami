@@ -1,10 +1,9 @@
 from contextlib import asynccontextmanager
 
+import sentry_sdk
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
-
-import sentry_sdk
 
 from app.common.ctx import bind_app_ctx, create_app_ctx
 from app.common.settings import AppSettings

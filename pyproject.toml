@@ -17,10 +17,9 @@ dependencies = [
     "sentry-sdk[fastapi]==2.58.0",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
-    "ruff>=0.11.2",
-    "mypy>=1.15.0",
+    "ruff>=0.16.2",
 ]
 
 [build-system]
