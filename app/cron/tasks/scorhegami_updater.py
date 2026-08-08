@@ -142,6 +142,7 @@ class ScorhegamiUpdaterTask(AsyncComponent):
             content += f"\nNot a ScoRHEgami. That score has happened {rhe_cnt - 1} "
             content += "time" if rhe_cnt == 2 else "times"
             content += f" before, most recently on {last_date.strftime('%B %-d, %Y')}."
+            content += f"\n\nSee all games with this RHE score: https://mlbscorhegami.com/search?rhe={','.join(map(str, rhe))}"
 
         return content
 
