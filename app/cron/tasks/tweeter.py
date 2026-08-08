@@ -12,7 +12,6 @@ from app.common.models.app import TweetStatusEnum
 
 from .base import AsyncComponent
 
-
 logger = logging.getLogger(__name__)
 
 
