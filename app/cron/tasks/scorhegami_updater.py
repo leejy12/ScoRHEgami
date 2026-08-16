@@ -111,12 +111,32 @@ class ScorhegamiUpdaterTask(AsyncComponent):
             else:
                 return short_name
 
+        def _to_monospace(text: str) -> str:
+            monospace_a = ord("𝙰")
+            monospace_zero = ord("𝟶")
+
+            converted: list[str] = []
+
+            for c in text:
+                if "A" <= c <= "Z":
+                    converted.append(chr(monospace_a + ord(c) - ord("A")))
+                elif "0" <= c <= "9":
+                    converted.append(chr(monospace_zero + ord(c) - ord("0")))
+                else:
+                    converted.append(c)
+
+            return "".join(converted)
+
         rhe = game.rhe
 
         content = "FINAL\n"
-        content += "          R  H  E\n"
-        content += f"{_add_spaces(game.away_team.short_name)}  {rhe[0]:2} {rhe[1]:2} {rhe[2]:2}\n"
-        content += f"{_add_spaces(game.home_team.short_name)}  {rhe[3]:2} {rhe[4]:2} {rhe[5]:2}\n"
+        content += _to_monospace("          R  H  E\n")
+        content += _to_monospace(
+            f"{_add_spaces(game.away_team.short_name)}  {rhe[0]:2} {rhe[1]:2} {rhe[2]:2}\n"
+        )
+        content += _to_monospace(
+            f"{_add_spaces(game.home_team.short_name)}  {rhe[3]:2} {rhe[4]:2} {rhe[5]:2}\n"
+        )
 
         if game.is_scorhegami:
             content += "\nThat's ScoRHEgami!\n"
